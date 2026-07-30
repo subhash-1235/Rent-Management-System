@@ -1272,3 +1272,95 @@
   color: var(--text-muted);
   font-size: 13px;
 }
+/* Add this to Rooms.css */
+
+.search-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+  align-items: center;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 6px 12px;
+  transition: all 0.3s ease;
+}
+
+.search-box:focus-within {
+  border-color: #6C63FF;
+  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+}
+
+.search-icon {
+  color: var(--text-muted);
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+.search-box input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.search-box input::placeholder {
+  color: var(--text-muted);
+}
+
+.filter-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--bg-glass);
+}
+
+.filter-box .filter-icon {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.filter-box select {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.filter-box select option {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.room-count {
+  color: var(--text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* 🔥 Add Button - Small */
+.add-btn-small {
+  padding: 6px 14px;
+  font-size: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.add-btn-small svg {
+  margin-right: 2px;
+}

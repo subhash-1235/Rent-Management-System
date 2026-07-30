@@ -922,7 +922,6 @@ const StatusUpdateModal = ({ show, onHide, room, onStatusUpdated }) => {
         is_active: status === 'occupied',
         tenant_name: status === 'occupied' ? room.tenant_name : null,
         tenant_mobile: status === 'occupied' ? room.tenant_mobile : null,
-        // 🔥 NEW: Vacant karne par room hide ho jaye
         is_deleted: status === 'vacant' ? true : false,
       };
       await roomAPI.update(room.id, data);
@@ -941,9 +940,7 @@ const StatusUpdateModal = ({ show, onHide, room, onStatusUpdated }) => {
   return (
     <Modal show={show} onHide={onHide} centered>
       <Modal.Header style={{ borderBottom: '1px solid var(--border-color)', padding: '12px 18px' }}>
-        <Modal.Title style={{ color: 'var(--text-primary)', fontSize: '16px', fontWeight: 700 }}>
-          🔄 Update Room Status
-        </Modal.Title>
+        <Modal.Title style={{ color: 'var(--text-primary)', fontSize: '16px', fontWeight: 700 }}>🔄 Update Room Status</Modal.Title>
       </Modal.Header>
       <Modal.Body style={{ background: 'var(--bg-primary)', padding: '14px 18px' }}>
         {error && <CustomAlert type="error" message={error} onClose={() => setError(null)} />}
@@ -967,7 +964,6 @@ const StatusUpdateModal = ({ show, onHide, room, onStatusUpdated }) => {
               <span style={{ fontSize: '13px' }}>
                 ⚠️ This room will be hidden from the table. 
                 Tenant details will be saved in "All Tenants" section.
-                Add new tenant using "Add New Room & Tenant".
               </span>
             </div>
           )}
@@ -1135,15 +1131,7 @@ const Rooms = () => {
     <div className="fade-in-up">
       {alert && <CustomAlert type={alert.type} message={alert.message} onClose={handleAlertClose} />}
 
-      <div className="rooms-header">
-        <div>
-          <h1><FiHome size={28} className="rooms-header-icon" /> Rooms & Tenants</h1>
-        </div>
-        <button className="btn-primary-gradient" onClick={() => setShowAddModal(true)}>
-          <FiPlus size={16} /> Add Room & Tenant
-        </button>
-      </div>
-
+      {/* Stats Cards */}
       <Row className="g-3 mb-4">
         {stats.map((stat, index) => (
           <Col md={3} sm={6} xs={6} key={index}>
@@ -1162,10 +1150,16 @@ const Rooms = () => {
         ))}
       </Row>
 
+      {/* 🔥 Search + Filter + Add Button in One Row */}
       <div className="search-filter-bar">
         <div className="search-box">
           <FiSearch className="search-icon" />
-          <input type="text" placeholder="Search by room no, tenant name, mobile or email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+          <input 
+            type="text" 
+            placeholder="Search by room no, tenant name, mobile or email..." 
+            value={searchTerm} 
+            onChange={(e) => setSearchTerm(e.target.value)} 
+          />
         </div>
         <div className="filter-box">
           <FiFilter className="filter-icon" />
@@ -1176,8 +1170,16 @@ const Rooms = () => {
           </select>
         </div>
         <div className="room-count">{filteredRooms.length} rooms found</div>
+        {/* 🔥 Add Button in Search Row - Right Side */}
+        <button 
+          className="btn-primary-gradient add-btn-small" 
+          onClick={() => setShowAddModal(true)}
+        >
+          <FiPlus size={14} /> Add Room & Tenant
+        </button>
       </div>
 
+      {/* Table */}
       <div className="table-wrap">
         {filteredRooms.length === 0 ? (
           <div className="empty-state">

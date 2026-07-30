@@ -772,3 +772,165 @@
   opacity: 0.6 !important;
   transform: none !important;
 }
+/* ========================================
+   BILLS TABLE - SCROLL & EQUAL GAPS
+   ======================================== */
+
+.bill-table-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0 2px;
+  margin: 0 -2px;
+  scrollbar-width: thin;
+  scrollbar-color: #6C63FF transparent;
+}
+
+.bill-table-scroll::-webkit-scrollbar {
+  height: 4px;
+  width: 4px;
+}
+
+.bill-table-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+.bill-table-scroll::-webkit-scrollbar-thumb {
+  background: #6C63FF;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.bill-table-scroll::-webkit-scrollbar-thumb:hover {
+  background: #4A42C4;
+}
+
+/* Bill Table - Equal Column Widths */
+.bill-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 900px;
+  table-layout: fixed;
+}
+
+.bill-table thead th {
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #6C63FF;
+  border-bottom: 2px solid rgba(108, 99, 255, 0.15);
+  text-align: center;
+  white-space: nowrap;
+  background: var(--bg-glass);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.bill-table thead th:first-child {
+  text-align: center;
+}
+
+.bill-table thead th:nth-child(2) {
+  text-align: left;
+  padding-left: 8px;
+}
+
+.bill-table thead th:nth-child(3) {
+  text-align: left;
+}
+
+.bill-table tbody td {
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bill-table tbody td:first-child {
+  text-align: center;
+}
+
+.bill-table tbody td:nth-child(2) {
+  text-align: left;
+  padding-left: 8px;
+}
+
+.bill-table tbody td:nth-child(3) {
+  text-align: left;
+}
+
+/* Fixed Column Widths - Equal Gaps */
+.bill-table th:nth-child(1),
+.bill-table td:nth-child(1) { 
+  width: 40px; 
+  min-width: 40px; 
+  max-width: 40px; 
+}
+.bill-table th:nth-child(2),
+.bill-table td:nth-child(2) { 
+  width: 85px; 
+  min-width: 85px; 
+  max-width: 85px; 
+}
+.bill-table th:nth-child(3),
+.bill-table td:nth-child(3) { 
+  width: 130px; 
+  min-width: 130px; 
+  max-width: 130px; 
+}
+.bill-table th:nth-child(4),
+.bill-table td:nth-child(4) { 
+  width: 60px; 
+  min-width: 60px; 
+  max-width: 60px; 
+}
+.bill-table th:nth-child(5),
+.bill-table td:nth-child(5) { 
+  width: 80px; 
+  min-width: 80px; 
+  max-width: 80px; 
+}
+.bill-table th:nth-child(6),
+.bill-table td:nth-child(6) { 
+  width: 80px; 
+  min-width: 80px; 
+  max-width: 80px; 
+}
+.bill-table th:nth-child(7),
+.bill-table td:nth-child(7) { 
+  width: 90px; 
+  min-width: 90px; 
+  max-width: 90px; 
+}
+.bill-table th:nth-child(8),
+.bill-table td:nth-child(8) { 
+  width: 90px; 
+  min-width: 90px; 
+  max-width: 90px; 
+}
+.bill-table th:nth-child(9),
+.bill-table td:nth-child(9) { 
+  width: 100px; 
+  min-width: 100px; 
+  max-width: 100px; 
+}
+.bill-table th:nth-child(10),
+.bill-table td:nth-child(10) { 
+  width: 90px; 
+  min-width: 90px; 
+  max-width: 90px; 
+}
+.bill-table th:nth-child(11),
+.bill-table td:nth-child(11) { 
+  width: 100px; 
+  min-width: 100px; 
+  max-width: 100px; 
+}

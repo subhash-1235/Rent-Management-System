@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Form, Button, Spinner, Alert, Modal } from 'react-bootstrap';
-import { FiSettings, FiSave, FiUser, FiShield, FiClock, FiGlobe, FiMoon, FiSun, FiDollarSign, FiSmartphone } from 'react-icons/fi';
+import { FiSettings, FiSave, FiUser, FiShield, FiClock, FiGlobe, FiMoon, FiSun, FiDollarSign, FiSmartphone, FiCreditCard, FiImage, FiUpload, FiTrash2 } from 'react-icons/fi';
 import { FaQrcode } from 'react-icons/fa';
-import { qrAPI, authAPI } from '../../services/api';
+import { qrAPI } from '../../services/api';
 import './Settings.css';
 
 const Settings = () => {
@@ -13,8 +13,8 @@ const Settings = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [showFullQR, setShowFullQR] = useState(false);
+  const [qrTab, setQrTab] = useState('upi');
   
-  // 🔥 Account Settings State
   const [accountSettings, setAccountSettings] = useState({
     admin_name: 'Admin',
     admin_email: 'admin@rentflow.com',
@@ -69,7 +69,6 @@ const Settings = () => {
     }
   };
 
-  // 🔥 Load Account Settings from localStorage
   const loadAccountSettings = () => {
     const saved = localStorage.getItem('account_settings');
     if (saved) {
@@ -96,7 +95,6 @@ const Settings = () => {
     localStorage.setItem('general_settings', JSON.stringify(settings));
   };
 
-  // 🔥 Save Account Settings to localStorage
   const saveAccountSettings = (settings) => {
     localStorage.setItem('account_settings', JSON.stringify({
       admin_name: settings.admin_name,
@@ -110,7 +108,6 @@ const Settings = () => {
       setSuccess(null);
       setError(null);
       
-      // Save QR Settings
       if (qrSettings && qrSettings.id) {
         const updateData = {
           upi_id: qrSettings.upi_id,
@@ -119,14 +116,10 @@ const Settings = () => {
         await qrAPI.update(qrSettings.id, updateData);
       }
       
-      // Save General Settings
       saveGeneralSettings(generalSettings);
       applyTheme();
-      
-      // 🔥 Save Account Settings
       saveAccountSettings(accountSettings);
       
-      // 🔥 Change Password if provided
       if (accountSettings.new_password && accountSettings.new_password.length > 0) {
         if (accountSettings.new_password !== accountSettings.confirm_password) {
           setError('Passwords do not match!');
@@ -138,9 +131,6 @@ const Settings = () => {
           setSaving(false);
           return;
         }
-        // Here you can call API to change password
-        // await authAPI.changePassword({ new_password: accountSettings.new_password });
-        // For now, just save in localStorage
         localStorage.setItem('user_password', accountSettings.new_password);
         setSuccess('Password changed successfully!');
       }
@@ -169,7 +159,6 @@ const Settings = () => {
     }
   };
 
-  // 🔥 Handle Account Settings Change
   const handleAccountChange = (e) => {
     const { name, value } = e.target;
     setAccountSettings({ ...accountSettings, [name]: value });
@@ -231,6 +220,24 @@ const Settings = () => {
       console.error('Error:', err);
       setError('Failed to process file.');
       setUploading(false);
+    }
+  };
+
+  const handleRemoveQR = async () => {
+    try {
+      if (qrSettings && qrSettings.id) {
+        const updateData = {
+          upi_id: qrSettings.upi_id,
+          qr_code_image: null
+        };
+        await qrAPI.update(qrSettings.id, updateData);
+        await fetchSettings();
+        setSuccess('QR Code removed successfully!');
+        setTimeout(() => setSuccess(null), 3000);
+      }
+    } catch (err) {
+      console.error('Error removing QR:', err);
+      setError('Failed to remove QR code.');
     }
   };
 
@@ -352,71 +359,98 @@ const Settings = () => {
               <FaQrcode size={20} />
               QR Code Settings
             </h5>
-            <Form className="settings-form">
-              <Form.Group className="mb-3">
-                <Form.Label>UPI ID</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="upi_id"
-                  placeholder="Enter UPI ID (e.g., admin@paytm)"
-                  value={qrSettings?.upi_id || ''}
-                  onChange={handleChange}
-                  style={{
-                    background: 'var(--bg-glass)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '10px',
-                    padding: '10px 14px',
-                    color: 'var(--text-primary)',
-                  }}
-                />
-                <Form.Text className="text-muted">
-                  Enter your UPI ID for receiving payments
-                </Form.Text>
-              </Form.Group>
-              <Form.Group>
-                <Form.Label>QR Code Image</Form.Label>
-                <Form.Control
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileUpload}
-                  disabled={uploading}
-                  style={{
-                    background: 'var(--bg-glass)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '10px',
-                    padding: '10px 14px',
-                    color: 'var(--text-primary)',
-                  }}
-                />
-                <Form.Text className="text-muted">
-                  {uploading ? 'Uploading...' : 'Upload QR code image for payments (PNG, JPG)'}
-                </Form.Text>
-                {qrSettings?.qr_code_image && (
-                  <div className="qr-preview mt-2">
-                    <img 
-                      src={qrSettings.qr_code_image} 
-                      alt="QR Code" 
-                      onClick={openFullQR}
-                      style={{ 
-                        maxWidth: '150px', 
-                        maxHeight: '150px',
-                        borderRadius: '8px',
+            
+            <div className="qr-tabs">
+              <button 
+                className={`qr-tab-btn ${qrTab === 'upi' ? 'active' : ''}`}
+                onClick={() => setQrTab('upi')}
+              >
+                <FiCreditCard size={16} />
+                UPI ID
+              </button>
+              <button 
+                className={`qr-tab-btn ${qrTab === 'qr' ? 'active' : ''}`}
+                onClick={() => setQrTab('qr')}
+              >
+                <FiImage size={16} />
+                QR Code
+              </button>
+            </div>
+
+            <div className="qr-tab-content">
+              {qrTab === 'upi' && (
+                <Form className="settings-form">
+                  <Form.Group>
+                    <Form.Label>UPI ID</Form.Label>
+                    <Form.Control
+                      type="text"
+                      name="upi_id"
+                      placeholder="Enter UPI ID (e.g., admin@paytm)"
+                      value={qrSettings?.upi_id || ''}
+                      onChange={handleChange}
+                      style={{
+                        background: 'var(--bg-glass)',
                         border: '1px solid var(--border-color)',
-                        background: 'white',
-                        padding: '8px',
-                        cursor: 'pointer',
-                        transition: 'transform 0.3s ease'
+                        borderRadius: '10px',
+                        padding: '10px 14px',
+                        color: 'var(--text-primary)',
                       }}
-                      onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
-                      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
                     />
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                      🔍 Click to view full size
-                    </div>
+                    <Form.Text className="text-muted">
+                      Enter your UPI ID for receiving payments
+                    </Form.Text>
+                  </Form.Group>
+                </Form>
+              )}
+
+              {qrTab === 'qr' && (
+                <div className="qr-upload-section">
+                  <div className="qr-upload-area">
+                    <label className="qr-upload-label">
+                      <FiUpload size={20} />
+                      <span>Choose QR Code Image</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                        disabled={uploading}
+                      />
+                    </label>
+                    <Form.Text className="text-muted">
+                      {uploading ? 'Uploading...' : 'Upload QR code image (PNG, JPG)'}
+                    </Form.Text>
                   </div>
-                )}
-              </Form.Group>
-            </Form>
+
+                  {qrSettings?.qr_code_image && (
+                    <div className="qr-preview-mini">
+                      <div className="qr-preview-mini-img" onClick={openFullQR}>
+                        <img 
+                          src={qrSettings.qr_code_image} 
+                          alt="QR Code" 
+                        />
+                        <div className="qr-preview-mini-overlay">
+                          <span>🔍 Click to view full</span>
+                        </div>
+                      </div>
+                      <button 
+                        className="qr-remove-btn"
+                        onClick={handleRemoveQR}
+                      >
+                        <FiTrash2 size={16} />
+                        Remove
+                      </button>
+                    </div>
+                  )}
+
+                  {!qrSettings?.qr_code_image && (
+                    <div className="qr-empty-state">
+                      <FaQrcode size={32} />
+                      <span>No QR Code uploaded</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </Col>
 

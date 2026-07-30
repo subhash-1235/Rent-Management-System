@@ -68,7 +68,9 @@ const AppLayout = ({ children }) => {
       <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
       <div className="main-content">
         <NavigationBar toggleSidebar={toggleSidebar} />
-        {children}
+        <div className="page-content">
+          {children}
+        </div>
       </div>
     </div>
   );
