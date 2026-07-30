@@ -61,6 +61,12 @@ export const authAPI = {
     api.post('token/', { username, password }),
   refresh: (refresh) => 
     api.post('token/refresh/', { refresh }),
+  register: (data) => 
+    api.post('register/', data),
+  logout: () => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+  },
 };
 
 // ============================================
@@ -69,9 +75,11 @@ export const authAPI = {
 export const roomAPI = {
   getAll: () => api.get('rooms/'),
   getActive: () => api.get('rooms/active_rooms/'),
+  getAllRooms: () => api.get('rooms/all_rooms/'),
   getById: (id) => api.get(`rooms/${id}/`),
   create: (data) => api.post('rooms/', data),
   update: (id, data) => api.put(`rooms/${id}/`, data),
+  partialUpdate: (id, data) => api.patch(`rooms/${id}/`, data),
   delete: (id) => api.delete(`rooms/${id}/`),
 };
 
@@ -83,8 +91,10 @@ export const billAPI = {
   getById: (id) => api.get(`bills/${id}/`),
   create: (data) => api.post('bills/', data),
   update: (id, data) => api.put(`bills/${id}/`, data),
+  partialUpdate: (id, data) => api.patch(`bills/${id}/`, data),
   delete: (id) => api.delete(`bills/${id}/`),
   calculate: (id) => api.post(`bills/${id}/calculate_readings/`),
+  close: (id) => api.post(`bills/${id}/close/`),
 };
 
 // ============================================
@@ -93,7 +103,10 @@ export const billAPI = {
 export const readingAPI = {
   getAll: () => api.get('readings/'),
   getByMonth: (month) => api.get(`readings/by_month/?month=${month}`),
+  getById: (id) => api.get(`readings/${id}/`),
   create: (data) => api.post('readings/', data),
+  update: (id, data) => api.put(`readings/${id}/`, data),
+  delete: (id) => api.delete(`readings/${id}/`),
   markPaid: (id, data) => api.post(`readings/${id}/mark_paid/`, data),
 };
 
@@ -104,7 +117,25 @@ export const paymentAPI = {
   getAll: () => api.get('payments/'),
   getById: (id) => api.get(`payments/${id}/`),
   create: (data) => api.post('payments/', data),
+  update: (id, data) => api.put(`payments/${id}/`, data),
+  delete: (id) => api.delete(`payments/${id}/`),
   getSummary: () => api.get('payments/summary/'),
+  getByMonth: (month) => api.get(`payments/by_month/?month=${month}`),
+};
+
+// ============================================
+// TENANT HISTORY APIs
+// ============================================
+export const tenantHistoryAPI = {
+  getAll: () => api.get('tenant-history/'),
+  getById: (id) => api.get(`tenant-history/${id}/`),
+  create: (data) => api.post('tenant-history/', data),
+  update: (id, data) => api.put(`tenant-history/${id}/`, data),
+  delete: (id) => api.delete(`tenant-history/${id}/`),
+  getAllTenants: () => api.get('tenant-history/all_tenants/'),
+  getActiveTenants: () => api.get('tenant-history/active_tenants/'),
+  getByRoom: (roomId) => api.get(`tenant-history/?room_id=${roomId}`),
+  searchByName: (name) => api.get(`tenant-history/?tenant_name=${name}`),
 };
 
 // ============================================
@@ -112,6 +143,8 @@ export const paymentAPI = {
 // ============================================
 export const dashboardAPI = {
   getStats: () => api.get('dashboard/stats/'),
+  getMonthlyStats: (month) => api.get(`dashboard/monthly_stats/?month=${month}`),
+  getYearlyStats: (year) => api.get(`dashboard/yearly_stats/?year=${year}`),
 };
 
 // ============================================
@@ -119,8 +152,28 @@ export const dashboardAPI = {
 // ============================================
 export const qrAPI = {
   getSettings: () => api.get('qr-settings/'),
+  getById: (id) => api.get(`qr-settings/${id}/`),
+  create: (data) => api.post('qr-settings/', data),
   update: (id, data) => api.put(`qr-settings/${id}/`, data),
+  delete: (id) => api.delete(`qr-settings/${id}/`),
   upload: (data) => api.post('qr-settings/upload_qr/', data),
 };
 
-export default api;
+// ============================================
+// EXPORT ALL
+// ============================================
+export default {
+  authAPI,
+  roomAPI,
+  billAPI,
+  readingAPI,
+  paymentAPI,
+  tenantHistoryAPI,
+  dashboardAPI,
+  qrAPI,
+};
+
+// ============================================
+// DEFAULT EXPORT
+// ============================================
+export const apiClient = api;

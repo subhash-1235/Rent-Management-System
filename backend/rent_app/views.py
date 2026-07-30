@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, generics, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -6,6 +6,7 @@ from django.db.models import Sum, Count, Q
 from django.utils import timezone
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
+from django.contrib.auth.models import User
 from decimal import Decimal
 from datetime import datetime, date
 import base64
@@ -14,27 +15,102 @@ import os
 
 from .models import (
     Room, MonthlyBill, RoomMeterReading, 
-    PaymentHistory, QRCodeSettings
+    PaymentHistory, QRCodeSettings, TenantHistory
 )
 from .serializers import (
     RoomSerializer, MonthlyBillSerializer, 
     RoomMeterReadingSerializer, PaymentHistorySerializer,
-    QRCodeSettingsSerializer
+    QRCodeSettingsSerializer, TenantHistorySerializer, UserSerializer
 )
+
+
+class RegisterView(generics.CreateAPIView):
+    """User Registration API"""
+    queryset = User.objects.all()
+    permission_classes = [AllowAny]
+    serializer_class = UserSerializer
 
 
 class RoomViewSet(viewsets.ModelViewSet):
     """API for Rooms"""
-    queryset = Room.objects.all()
+    queryset = Room.objects.filter(is_deleted=False)
     serializer_class = RoomSerializer
     permission_classes = [IsAuthenticated]
 
+    def destroy(self, request, *args, **kwargs):
+        """Soft delete - just mark as deleted"""
+        instance = self.get_object()
+        instance.is_deleted = True
+        instance.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     @action(detail=False, methods=['get'])
     def active_rooms(self, request):
-        """Get all active rooms"""
-        rooms = Room.objects.filter(is_active=True)
+        """Get all active rooms (not deleted)"""
+        rooms = Room.objects.filter(is_active=True, is_deleted=False)
         serializer = self.get_serializer(rooms, many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def all_rooms(self, request):
+        """Get all rooms including deleted (for admin)"""
+        rooms = Room.objects.all()
+        serializer = self.get_serializer(rooms, many=True)
+        return Response(serializer.data)
+
+    def perform_update(self, serializer):
+        """Override update to save tenant history and handle room deletion"""
+        instance = self.get_object()
+        
+        old_tenant_name = instance.tenant_name
+        old_tenant_mobile = instance.tenant_mobile
+        old_tenant_email = instance.tenant_email
+        old_room_rent = instance.room_rent
+        old_address = instance.address
+        old_move_in_date = instance.move_in_date
+        
+        updated_instance = serializer.save()
+        
+        new_tenant_name = updated_instance.tenant_name
+        new_is_deleted = updated_instance.is_deleted
+        
+        if old_tenant_name and not new_tenant_name:
+            history = TenantHistory.objects.create(
+                room=updated_instance,
+                tenant_name=old_tenant_name,
+                tenant_mobile=old_tenant_mobile,
+                tenant_email=old_tenant_email,
+                room_rent=old_room_rent,
+                address=old_address,
+                move_in_date=old_move_in_date,
+                move_out_date=date.today(),
+                aadhar_data={}
+            )
+            
+            tenant_readings = RoomMeterReading.objects.filter(
+                room=updated_instance,
+                tenant_name_snapshot=old_tenant_name
+            )
+            
+            total_paid = PaymentHistory.objects.filter(
+                room_reading__in=tenant_readings
+            ).aggregate(total=Sum('amount'))['total'] or 0
+            
+            total_bills = tenant_readings.aggregate(
+                total=Sum('total_amount')
+            )['total'] or 0
+            
+            history.total_paid = total_paid
+            history.total_bills = total_bills
+            history.save()
+            
+            if new_is_deleted:
+                updated_instance.is_active = False
+                updated_instance.save()
+        
+        if new_is_deleted and updated_instance.tenant_name:
+            updated_instance.is_deleted = False
+            updated_instance.save()
 
 
 class MonthlyBillViewSet(viewsets.ModelViewSet):
@@ -45,7 +121,7 @@ class MonthlyBillViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def calculate_readings(self, request, pk=None):
-        """Calculate all room readings for a bill"""
+        """Calculate all room readings for a bill and save tenant snapshots"""
         bill = self.get_object()
         
         readings = RoomMeterReading.objects.filter(monthly_bill=bill)
@@ -69,6 +145,33 @@ class MonthlyBillViewSet(viewsets.ModelViewSet):
         for reading in readings:
             reading.electricity_charge = reading.units_consumed * per_unit_rate
             reading.total_amount = reading.room.room_rent + reading.electricity_charge
+            
+            if reading.room.tenant_name and reading.room.tenant_name.strip():
+                reading.tenant_name_snapshot = reading.room.tenant_name
+                reading.tenant_mobile_snapshot = reading.room.tenant_mobile or ''
+            else:
+                previous_reading = RoomMeterReading.objects.filter(
+                    room=reading.room,
+                    monthly_bill__month__lt=bill.month
+                ).exclude(
+                    Q(tenant_name_snapshot='') | Q(tenant_name_snapshot__isnull=True)
+                ).order_by('-monthly_bill__month').first()
+                
+                if previous_reading and previous_reading.tenant_name_snapshot:
+                    reading.tenant_name_snapshot = previous_reading.tenant_name_snapshot
+                    reading.tenant_mobile_snapshot = previous_reading.tenant_mobile_snapshot or ''
+                else:
+                    last_payment = PaymentHistory.objects.filter(
+                        room_reading__room=reading.room
+                    ).order_by('-payment_date').first()
+                    
+                    if last_payment and last_payment.room_reading.tenant_name_snapshot:
+                        reading.tenant_name_snapshot = last_payment.room_reading.tenant_name_snapshot
+                        reading.tenant_mobile_snapshot = last_payment.room_reading.tenant_mobile_snapshot or ''
+                    else:
+                        reading.tenant_name_snapshot = ''
+                        reading.tenant_mobile_snapshot = ''
+            
             reading.save()
         
         bill.total_units = total_units
@@ -96,7 +199,6 @@ class RoomMeterReadingViewSet(viewsets.ModelViewSet):
         """Mark a reading as paid (supports partial payment)"""
         reading = self.get_object()
         
-        # Get payment data
         payment_mode = request.data.get('payment_mode', 'CASH')
         amount = Decimal(str(request.data.get('amount', 0)))
         
@@ -116,11 +218,9 @@ class RoomMeterReadingViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Update paid amount
         reading.paid_amount = already_paid + amount
         reading.payment_mode = payment_mode
         
-        # Check if fully paid
         if reading.paid_amount >= total_amount:
             reading.is_paid = True
             reading.paid_date = timezone.now()
@@ -129,8 +229,7 @@ class RoomMeterReadingViewSet(viewsets.ModelViewSet):
         
         reading.save()
         
-        # Create payment history
-        PaymentHistory.objects.create(
+        payment = PaymentHistory.objects.create(
             room_reading=reading,
             amount=amount,
             payment_mode=payment_mode,
@@ -140,11 +239,13 @@ class RoomMeterReadingViewSet(viewsets.ModelViewSet):
             is_partial=amount < remaining
         )
         
+        serializer = PaymentHistorySerializer(payment)
         return Response({
             'message': 'Payment recorded successfully',
             'is_paid': reading.is_paid,
             'paid_amount': reading.paid_amount,
             'remaining': total_amount - reading.paid_amount,
+            'payment': serializer.data,
             'reading': self.get_serializer(reading).data
         })
 
@@ -227,6 +328,26 @@ class QRCodeSettingsViewSet(viewsets.ModelViewSet):
     serializer_class = QRCodeSettingsSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        """Return all QR settings"""
+        return QRCodeSettings.objects.all()
+
+    def update(self, request, *args, **kwargs):
+        """Override update to handle partial updates"""
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        
+        # Remove file from data if not present or empty
+        if 'qr_code_image' in request.data:
+            if request.data['qr_code_image'] == '' or request.data['qr_code_image'] is None:
+                request.data.pop('qr_code_image')
+        
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        
+        return Response(serializer.data)
+
     @action(detail=False, methods=['post'])
     def upload_qr(self, request):
         """Upload QR Code image"""
@@ -246,11 +367,17 @@ class QRCodeSettingsViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
-            # Decode base64 image
-            format, imgstr = image_data.split(';base64,')
-            ext = format.split('/')[-1]
+            # Handle base64 format
+            if ';base64,' in image_data:
+                format, imgstr = image_data.split(';base64,')
+                ext = format.split('/')[-1]
+            else:
+                imgstr = image_data
+                ext = 'png'
+            
             filename = f"qr_{uuid.uuid4()}.{ext}"
             
+            import base64
             file_path = default_storage.save(
                 f'qr_codes/{filename}',
                 ContentFile(base64.b64decode(imgstr))
@@ -274,6 +401,8 @@ class QRCodeSettingsViewSet(viewsets.ModelViewSet):
             })
             
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             return Response(
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
@@ -287,8 +416,8 @@ class DashboardViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'])
     def stats(self, request):
         """Get dashboard statistics"""
-        total_rooms = Room.objects.filter(is_active=True).count()
-        total_rent = Room.objects.filter(is_active=True).aggregate(
+        total_rooms = Room.objects.filter(is_active=True, is_deleted=False).count()
+        total_rent = Room.objects.filter(is_active=True, is_deleted=False).aggregate(
             total=Sum('room_rent')
         )['total'] or 0
         
@@ -302,7 +431,6 @@ class DashboardViewSet(viewsets.ViewSet):
             monthly_bill=current_bill
         ) if current_bill else RoomMeterReading.objects.none()
         
-        # Calculate with paid_amount for partial payments
         paid_amount = readings.aggregate(
             total=Sum('paid_amount')
         )['total'] or 0
@@ -320,7 +448,7 @@ class DashboardViewSet(viewsets.ViewSet):
             total=Sum('amount')
         )['total'] or 0
         
-        highest_rent_room = Room.objects.filter(is_active=True).order_by('-room_rent').first()
+        highest_rent_room = Room.objects.filter(is_active=True, is_deleted=False).order_by('-room_rent').first()
         
         return Response({
             'total_rooms': total_rooms,
@@ -341,3 +469,37 @@ class DashboardViewSet(viewsets.ViewSet):
                 'rent': highest_rent_room.room_rent if highest_rent_room else 0,
             } if highest_rent_room else None
         })
+
+
+class TenantHistoryViewSet(viewsets.ModelViewSet):
+    """API for Tenant History"""
+    queryset = TenantHistory.objects.all()
+    serializer_class = TenantHistorySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = TenantHistory.objects.all()
+        
+        room_id = self.request.query_params.get('room_id')
+        if room_id:
+            queryset = queryset.filter(room_id=room_id)
+        
+        tenant_name = self.request.query_params.get('tenant_name')
+        if tenant_name:
+            queryset = queryset.filter(tenant_name__icontains=tenant_name)
+        
+        return queryset.order_by('-move_in_date')
+
+    @action(detail=False, methods=['get'])
+    def all_tenants(self, request):
+        """Get all tenants with their details"""
+        tenants = TenantHistory.objects.all().order_by('-move_in_date')
+        serializer = self.get_serializer(tenants, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def active_tenants(self, request):
+        """Get all currently active tenants (move_out_date is null)"""
+        tenants = TenantHistory.objects.filter(move_out_date__isnull=True)
+        serializer = self.get_serializer(tenants, many=True)
+        return Response(serializer.data)

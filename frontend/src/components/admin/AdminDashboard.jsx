@@ -15,7 +15,7 @@ import { dashboardAPI, roomAPI } from '../../services/api';
 import './AdminDashboard.css';
 
 // ========================================
-// ROOM TABLE COMPONENT
+// ROOM TABLE COMPONENT - FIXED
 // ========================================
 const RoomTable = ({ rooms = [] }) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -62,16 +62,23 @@ const RoomTable = ({ rooms = [] }) => {
         </thead>
         <tbody>
           {currentRooms.map((room, index) => {
+            // Fix: Properly access room data
+            const roomData = room.room || room;
+            const roomNumber = roomData.room_number || room.id || 'N/A';
+            const tenantName = roomData.tenant_name || 'N/A';
+            const tenantMobile = roomData.tenant_mobile || 'N/A';
+            const roomRent = roomData.room_rent || 0;
+            
             const status = getStatusBadge(room.is_paid);
             
             return (
               <tr key={room.id || index}>
                 <td className="col-sno">{startIndex + index + 1}</td>
-                <td className="col-room"><strong>Room {room.room?.room_number || room.id}</strong></td>
-                <td className="col-tenant">{room.room?.tenant_name || room.tenant_name || 'N/A'}</td>
-                <td className="col-mobile">{room.room?.tenant_mobile || room.tenant_mobile || 'N/A'}</td>
+                <td className="col-room"><strong>Room {roomNumber}</strong></td>
+                <td className="col-tenant">{tenantName}</td>
+                <td className="col-mobile">{tenantMobile}</td>
                 <td className="col-units">{room.units_consumed || 0}</td>
-                <td className="col-rent">₹{room.room?.room_rent || room.room_rent || 0}</td>
+                <td className="col-rent">₹{roomRent}</td>
                 <td className="col-bill">₹{room.electricity_charge || 0}</td>
                 <td className="col-total"><strong>₹{room.total_amount || 0}</strong></td>
                 <td className="col-status">
@@ -111,7 +118,7 @@ const RoomTable = ({ rooms = [] }) => {
 };
 
 // ========================================
-// ADMIN DASHBOARD MAIN
+// ADMIN DASHBOARD MAIN - FIXED
 // ========================================
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -132,6 +139,7 @@ const AdminDashboard = () => {
         roomAPI.getAll(),
       ]);
       
+      // Fix: Properly format stats data
       const statsData = {
         totalRooms: statsRes.data.total_rooms || 0,
         totalCollection: statsRes.data.total_amount || 0,
@@ -140,7 +148,23 @@ const AdminDashboard = () => {
       };
       
       setStats(statsData);
-      setRooms(roomsRes.data || []);
+      
+      // Fix: Ensure rooms data is properly structured
+      const roomsData = roomsRes.data || [];
+      // Map rooms to include room details properly
+      const formattedRooms = roomsData.map(room => ({
+        ...room,
+        room_number: room.room_number || room.id,
+        tenant_name: room.tenant_name || 'N/A',
+        tenant_mobile: room.tenant_mobile || 'N/A',
+        room_rent: room.room_rent || 0,
+        is_active: room.is_active !== undefined ? room.is_active : true,
+        total_amount: room.total_amount || 0,
+        electricity_charge: room.electricity_charge || 0,
+        units_consumed: room.units_consumed || 0,
+        is_paid: room.is_paid || false,
+      }));
+      setRooms(formattedRooms);
       setError(null);
     } catch (err) {
       console.error('Error fetching data:', err);

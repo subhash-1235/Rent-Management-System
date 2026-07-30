@@ -14,9 +14,9 @@ import './components/common/Sidebar.css';
 import './components/admin/AdminDashboard.css';
 import './components/admin/Rooms.css';
 import './components/admin/Bills.css';
-import './components/admin/Tenants.css';
 import './components/admin/History.css';
 import './components/admin/Settings.css';
+import './components/admin/AllTenants.css';
 import './components/auth/Login.css';
 import './components/auth/Register.css';
 
@@ -31,9 +31,9 @@ import Register from './components/auth/Register';
 import AdminDashboard from './components/admin/AdminDashboard';
 import Rooms from './components/admin/Rooms';
 import Bills from './components/admin/Bills';
-import Tenants from './components/admin/Tenants';
 import History from './components/admin/History';
 import Settings from './components/admin/Settings';
+import AllTenants from './components/admin/AllTenants';
 
 // ========================================
 // Protected Route Component
@@ -115,18 +115,18 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
 
-      <Route path="/tenants" element={
-        <ProtectedRoute>
-          <AppLayout>
-            <Tenants />
-          </AppLayout>
-        </ProtectedRoute>
-      } />
-
       <Route path="/history" element={
         <ProtectedRoute>
           <AppLayout>
             <History />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+
+      <Route path="/all-tenants" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <AllTenants />
           </AppLayout>
         </ProtectedRoute>
       } />

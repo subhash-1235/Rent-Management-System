@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button, Alert, Table, Row, Col } from 'react-bootstrap';
-import { 
-  FiPlus, 
-  FiEye, 
-  FiEdit, 
-  FiTrash2, 
+import {
+  FiPlus,
+  FiEye,
+  FiEdit,
+  FiTrash2,
   FiRefreshCw,
   FiDollarSign,
   FiCalendar,
@@ -17,7 +17,8 @@ import {
   FiClock,
   FiTrendingUp,
   FiArrowLeft,
-  FiFileText
+  FiFileText,
+  FiInfo
 } from 'react-icons/fi';
 import { billAPI, roomAPI, readingAPI } from '../../services/api';
 import './Bills.css';
@@ -72,13 +73,105 @@ const CustomAlert = ({ type, message, onClose }) => {
     <div className="custom-alert-top" style={alertStyles[type]}>
       <div className="custom-alert-top-icon">{icons[type]}</div>
       <div className="custom-alert-top-message">{message}</div>
-      <button 
-        className="custom-alert-top-close" 
+      <button
+        className="custom-alert-top-close"
         onClick={() => { setVisible(false); if (onClose) onClose(); }}
       >
         ×
       </button>
     </div>
+  );
+};
+
+// ========================================
+// DELETE CONFIRMATION MODAL
+// ========================================
+const DeleteConfirmModal = ({ show, onHide, onConfirm, billMonth }) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleConfirm = async () => {
+    setLoading(true);
+    await onConfirm();
+    setLoading(false);
+  };
+
+  return (
+    <Modal show={show} onHide={onHide} centered>
+      <Modal.Header style={{
+        borderBottom: '1px solid var(--border-color)',
+        padding: '16px 24px',
+        background: 'rgba(239, 68, 68, 0.05)'
+      }}>
+        <Modal.Title style={{
+          color: '#F87171',
+          fontSize: '18px',
+          fontWeight: 700,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px'
+        }}>
+          <FiTrash2 size={20} style={{ color: '#F87171' }} />
+          Delete Bill
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body style={{
+        background: 'var(--bg-primary)',
+        padding: '20px 24px'
+      }}>
+        <div className="delete-confirm-content">
+          <div className="delete-confirm-icon">
+            <FiAlertCircle size={40} style={{ color: '#FBBF24' }} />
+          </div>
+          <h4 style={{
+            color: 'var(--text-primary)',
+            fontWeight: 700,
+            marginTop: '6px',
+            fontSize: '17px'
+          }}>
+            Are you sure?
+          </h4>
+          <p style={{
+            color: 'var(--text-secondary)',
+            fontSize: '14px',
+            marginTop: '4px',
+            marginBottom: '0'
+          }}>
+            You are about to delete the bill for <strong style={{ color: 'var(--text-primary)' }}>{billMonth}</strong>.
+          </p>
+          <div className="delete-warning-box">
+            <FiAlertCircle size={16} style={{ color: '#F87171', flexShrink: 0 }} />
+            <span style={{ fontSize: '13px' }}>
+              This action cannot be undone. All room readings and payment data for this month will be permanently removed.
+            </span>
+          </div>
+        </div>
+      </Modal.Body>
+      <Modal.Footer style={{
+        borderTop: '1px solid var(--border-color)',
+        padding: '12px 24px',
+        background: 'var(--bg-glass)',
+        display: 'flex',
+        gap: '8px',
+        justifyContent: 'flex-end'
+      }}>
+        <Button
+          variant="secondary"
+          className="btn-ghost"
+          onClick={onHide}
+          style={{ fontSize: '13px', padding: '6px 18px' }}
+        >
+          Cancel
+        </Button>
+        <Button
+          className="btn-delete-confirm"
+          onClick={handleConfirm}
+          disabled={loading}
+          style={{ fontSize: '13px', padding: '6px 18px' }}
+        >
+          {loading ? 'Deleting...' : 'Yes, Delete'}
+        </Button>
+      </Modal.Footer>
+    </Modal>
   );
 };
 
@@ -122,7 +215,7 @@ const PaymentModal = ({ show, onHide, reading, onPaymentComplete }) => {
         return;
       }
 
-      await readingAPI.markPaid(reading.id, { 
+      await readingAPI.markPaid(reading.id, {
         payment_mode: paymentMode,
         amount: paidAmount
       });
@@ -144,7 +237,10 @@ const PaymentModal = ({ show, onHide, reading, onPaymentComplete }) => {
   const remaining = totalAmount - alreadyPaid;
   const roomData = reading.room_details || reading.room || {};
   const roomNumber = roomData.room_number || 'N/A';
-  const tenantName = roomData.tenant_name || '—';
+
+  const tenantName = reading.tenant_name_snapshot ||
+    roomData.tenant_name ||
+    '—';
 
   return (
     <Modal show={show} onHide={onHide} centered>
@@ -212,7 +308,7 @@ const PaymentModal = ({ show, onHide, reading, onPaymentComplete }) => {
 
           <Form.Group className="mb-3">
             <Form.Label style={{ color: 'var(--text-secondary)' }}>Payment Mode</Form.Label>
-            <Form.Select 
+            <Form.Select
               className="form-control"
               style={{
                 background: 'var(--bg-glass)',
@@ -291,12 +387,15 @@ const AddBillModal = ({ show, onHide, onBillAdded }) => {
 
     try {
       const monthDate = `${formData.month}-01`;
-      
+
       const billData = {
         month: monthDate,
         per_unit_rate: parseFloat(formData.per_unit_rate),
+        total_bill_amount: 0,
+        total_units: 0,
+        is_closed: false
       };
-      
+
       const billResponse = await billAPI.create(billData);
       const billId = billResponse.data.id;
 
@@ -323,7 +422,11 @@ const AddBillModal = ({ show, onHide, onBillAdded }) => {
       setReadings({});
     } catch (err) {
       console.error('Error adding bill:', err);
-      setError(err.response?.data?.detail || 'Failed to add bill. Please try again.');
+      if (err.response?.data?.month) {
+        setError(`⚠️ Bill for ${formData.month} already exists! Please delete existing bill first.`);
+      } else {
+        setError(err.response?.data?.detail || 'Failed to add bill. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -341,9 +444,9 @@ const AddBillModal = ({ show, onHide, onBillAdded }) => {
             <Col md={6}>
               <Form.Group>
                 <Form.Label style={{ color: 'var(--text-secondary)' }}>Month *</Form.Label>
-                <Form.Control 
-                  type="month" 
-                  name="month" 
+                <Form.Control
+                  type="month"
+                  name="month"
                   className="form-control"
                   style={{
                     background: 'var(--bg-glass)',
@@ -352,18 +455,18 @@ const AddBillModal = ({ show, onHide, onBillAdded }) => {
                     padding: '12px 16px',
                     color: 'var(--text-primary)',
                   }}
-                  value={formData.month} 
-                  onChange={handleChange} 
-                  required 
+                  value={formData.month}
+                  onChange={handleChange}
+                  required
                 />
               </Form.Group>
             </Col>
             <Col md={6}>
               <Form.Group>
                 <Form.Label style={{ color: 'var(--text-secondary)' }}>Per Unit Rate (₹) *</Form.Label>
-                <Form.Control 
-                  type="number" 
-                  name="per_unit_rate" 
+                <Form.Control
+                  type="number"
+                  name="per_unit_rate"
                   placeholder="Enter per unit rate"
                   className="form-control"
                   style={{
@@ -373,11 +476,11 @@ const AddBillModal = ({ show, onHide, onBillAdded }) => {
                     padding: '12px 16px',
                     color: 'var(--text-primary)',
                   }}
-                  value={formData.per_unit_rate} 
-                  onChange={handleChange} 
-                  required 
-                  min="0" 
-                  step="0.01" 
+                  value={formData.per_unit_rate}
+                  onChange={handleChange}
+                  required
+                  min="0"
+                  step="0.01"
                 />
               </Form.Group>
             </Col>
@@ -391,8 +494,8 @@ const AddBillModal = ({ show, onHide, onBillAdded }) => {
                   <div style={{ minWidth: '120px', fontWeight: 500, color: 'var(--text-primary)' }}>
                     Room {room.room_number}
                   </div>
-                  <Form.Control 
-                    type="number" 
+                  <Form.Control
+                    type="number"
                     placeholder="Units consumed (e.g. 54.45)"
                     className="form-control"
                     style={{
@@ -403,10 +506,10 @@ const AddBillModal = ({ show, onHide, onBillAdded }) => {
                       color: 'var(--text-primary)',
                       width: '180px',
                     }}
-                    value={readings[room.id] || ''} 
-                    onChange={(e) => handleReadingChange(room.id, e.target.value)} 
-                    min="0" 
-                    step="0.01" 
+                    value={readings[room.id] || ''}
+                    onChange={(e) => handleReadingChange(room.id, e.target.value)}
+                    min="0"
+                    step="0.01"
                   />
                 </div>
               </Form.Group>
@@ -426,261 +529,61 @@ const AddBillModal = ({ show, onHide, onBillAdded }) => {
 };
 
 // ========================================
-// BILL DETAILS COMPONENT
-// ========================================
-const BillDetails = ({ bill, onBack, onPaymentComplete }) => {
-  const [details, setDetails] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [selectedReading, setSelectedReading] = useState(null);
-  const [alert, setAlert] = useState(null);
-
-  useEffect(() => {
-    if (bill) {
-      fetchDetails();
-    }
-  }, [bill]);
-
-  const fetchDetails = async () => {
-    try {
-      setLoading(true);
-      const response = await readingAPI.getByMonth(bill.month);
-      setDetails(response.data || []);
-    } catch (err) {
-      console.error('Error fetching bill details:', err);
-      showAlert('error', 'Failed to load bill details.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const showAlert = (type, message) => {
-    setAlert({ type, message });
-    setTimeout(() => setAlert(null), 3000);
-  };
-
-  const handlePaymentClick = (reading) => {
-    setSelectedReading(reading);
-    setShowPaymentModal(true);
-  };
-
-  const handlePaymentComplete = () => {
-    fetchDetails();
-    if (onPaymentComplete) onPaymentComplete();
-    showAlert('success', '✅ Payment processed successfully!');
-  };
-
-  const getStatusBadge = (isPaid, totalAmount, paidAmount) => {
-    const total = parseFloat(totalAmount) || 0;
-    const paid = parseFloat(paidAmount) || 0;
-    
-    if (total === 0) {
-      return { class: 'active', label: '⏳ Pending' };
-    }
-    if (paid >= total) {
-      return { class: 'closed', label: '✅ Paid' };
-    }
-    if (paid > 0 && paid < total) {
-      return { class: 'partial', label: '🔄 Partial' };
-    }
-    return { class: 'active', label: '⏳ Pending' };
-  };
-
-  const formatAmount = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(amount);
-  };
-
-  const totalAmount = details.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
-  const totalPaid = details.reduce((sum, r) => sum + (parseFloat(r.paid_amount) || 0), 0);
-  const totalPending = totalAmount - totalPaid;
-
-  if (loading) {
-    return (
-      <div className="bill-details-container">
-        <div className="text-center py-5">
-          <div className="spinner-border text-primary" role="status" />
-          <p className="mt-2 text-muted">Loading bill details...</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bill-details-container">
-      {alert && <CustomAlert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
-
-      <div className="details-header">
-        <button className="back-btn" onClick={onBack}>
-          <FiArrowLeft size={20} />
-          Back to Bills
-        </button>
-        <h2>
-          <FiFileText size={24} className="details-header-icon" />
-          Bill Details - {bill ? new Date(bill.month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : ''}
-        </h2>
-      </div>
-
-      <Row className="g-3 mb-4">
-        <Col md={3} sm={6}>
-          <div className="stat-card card-purple">
-            <div className="stat-left">
-              <div className="stat-icon"><FiDollarSign size={22} /></div>
-              <span className="stat-change">Total</span>
-            </div>
-            <div className="stat-right">
-              <div className="stat-number">₹{formatAmount(totalAmount)}</div>
-              <div className="stat-label">Total Amount</div>
-            </div>
-            <div className="stat-glow" />
-          </div>
-        </Col>
-        <Col md={3} sm={6}>
-          <div className="stat-card card-green">
-            <div className="stat-left">
-              <div className="stat-icon"><FiCheck size={22} /></div>
-              <span className="stat-change">Received</span>
-            </div>
-            <div className="stat-right">
-              <div className="stat-number">₹{formatAmount(totalPaid)}</div>
-              <div className="stat-label">Amount Received</div>
-            </div>
-            <div className="stat-glow" />
-          </div>
-        </Col>
-        <Col md={3} sm={6}>
-          <div className="stat-card card-rose">
-            <div className="stat-left">
-              <div className="stat-icon"><FiClock size={22} /></div>
-              <span className="stat-change">Pending</span>
-            </div>
-            <div className="stat-right">
-              <div className="stat-number">₹{formatAmount(totalPending)}</div>
-              <div className="stat-label">Pending Amount</div>
-            </div>
-            <div className="stat-glow" />
-          </div>
-        </Col>
-        <Col md={3} sm={6}>
-          <div className="stat-card card-blue">
-            <div className="stat-left">
-              <div className="stat-icon"><FiUser size={22} /></div>
-              <span className="stat-change">Rooms</span>
-            </div>
-            <div className="stat-right">
-              <div className="stat-number">{details.length}</div>
-              <div className="stat-label">Total Rooms</div>
-            </div>
-            <div className="stat-glow" />
-          </div>
-        </Col>
-      </Row>
-
-      <div className="table-wrap">
-        {details.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">📋</div>
-            <div className="empty-title">No room readings found</div>
-            <div className="empty-sub">This bill has no room readings yet.</div>
-          </div>
-        ) : (
-          <table className="table-premium">
-            <thead>
-              <tr>
-                <th>Room</th>
-                <th>Tenant</th>
-                <th>Units</th>
-                <th>Rent</th>
-                <th>Bill</th>
-                <th>Total</th>
-                <th>Paid</th>
-                <th>Remaining</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {details.map((reading) => {
-                const roomData = reading.room_details || reading.room || {};
-                const roomNumber = roomData.room_number || '?';
-                const tenantName = roomData.tenant_name || '—';
-                const rent = parseFloat(roomData.room_rent) || 0;
-                
-                const total = parseFloat(reading.total_amount) || 0;
-                const paid = parseFloat(reading.paid_amount) || 0;
-                const remaining = total - paid;
-                const electricity = parseFloat(reading.electricity_charge) || 0;
-                const units = parseFloat(reading.units_consumed) || 0;
-                const status = getStatusBadge(reading.is_paid, total, paid);
-                
-                return (
-                  <tr key={reading.id}>
-                    <td><strong>Room {roomNumber}</strong></td>
-                    <td>{tenantName}</td>
-                    <td>{units.toFixed(2)}</td>
-                    <td>₹{rent.toFixed(2)}</td>
-                    <td>₹{electricity.toFixed(2)}</td>
-                    <td><strong style={{ color: '#6C63FF' }}>₹{total.toFixed(2)}</strong></td>
-                    <td style={{ color: '#34D399' }}>₹{paid.toFixed(2)}</td>
-                    <td style={{ color: remaining > 0 ? '#F87171' : '#34D399' }}>
-                      ₹{remaining.toFixed(2)}
-                    </td>
-                    <td>
-                      <span className={`badge-status ${status.class}`}>
-                        {status.label}
-                      </span>
-                    </td>
-                    <td>
-                      {remaining > 0 && (
-                        <button 
-                          className="action-btn edit-btn" 
-                          title="Mark Paid" 
-                          onClick={() => handlePaymentClick(reading)}
-                        >
-                          Pay ₹{remaining.toFixed(2)}
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      <PaymentModal 
-        show={showPaymentModal}
-        onHide={() => setShowPaymentModal(false)}
-        reading={selectedReading}
-        onPaymentComplete={handlePaymentComplete}
-      />
-    </div>
-  );
-};
-
-// ========================================
 // BILLS MAIN COMPONENT
 // ========================================
 const Bills = () => {
   const [bills, setBills] = useState([]);
   const [selectedBill, setSelectedBill] = useState(null);
-  const [viewMode, setViewMode] = useState('list');
+  const [billDetails, setBillDetails] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [detailsLoading, setDetailsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedReading, setSelectedReading] = useState(null);
   const [alert, setAlert] = useState(null);
-
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const [availableMonths, setAvailableMonths] = useState([]);
+  const [selectedMonth, setSelectedMonth] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
+  const [deleteTargetMonth, setDeleteTargetMonth] = useState('');
 
   useEffect(() => {
     fetchBills();
   }, []);
+
+  // 🔥 FIX: Unique months using Set to avoid duplicate keys
+  useEffect(() => {
+    if (bills.length > 0) {
+      const uniqueMonths = {};
+      bills.forEach(bill => {
+        const monthKey = bill.month;
+        if (!uniqueMonths[monthKey]) {
+          uniqueMonths[monthKey] = {
+            value: bill.month,
+            label: new Date(bill.month).toLocaleDateString('en-US', {
+              month: 'long',
+              year: 'numeric'
+            })
+          };
+        }
+      });
+
+      const months = Object.values(uniqueMonths);
+      months.sort((a, b) => new Date(a.value) - new Date(b.value));
+      setAvailableMonths(months);
+
+      if (months.length > 0) {
+        setSelectedMonth(months[months.length - 1].value);
+      }
+    }
+  }, [bills]);
+
+  useEffect(() => {
+    if (selectedMonth) {
+      fetchBillDetails(selectedMonth);
+    }
+  }, [selectedMonth]);
 
   const fetchBills = async () => {
     try {
@@ -696,9 +599,29 @@ const Bills = () => {
     }
   };
 
+  const fetchBillDetails = async (month) => {
+    try {
+      setDetailsLoading(true);
+      const response = await readingAPI.getByMonth(month);
+      setBillDetails(response.data || []);
+
+      const bill = bills.find(b => b.month === month);
+      setSelectedBill(bill || null);
+    } catch (err) {
+      console.error('Error fetching bill details:', err);
+      showAlert('error', 'Failed to load bill details.');
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+
   const showAlert = (type, message) => {
     setAlert({ type, message });
     setTimeout(() => setAlert(null), 3000);
+  };
+
+  const handleAlertClose = () => {
+    setAlert(null);
   };
 
   const handleBillAdded = () => {
@@ -706,24 +629,24 @@ const Bills = () => {
     showAlert('success', '✅ Bill added successfully!');
   };
 
-  const handleViewDetails = (bill) => {
-    setSelectedBill(bill);
-    setViewMode('details');
-  };
-
-  const handleBackToList = () => {
-    setViewMode('list');
-    setSelectedBill(null);
+  const handlePaymentClick = (reading) => {
+    setSelectedReading(reading);
+    setShowPaymentModal(true);
   };
 
   const handlePaymentComplete = () => {
+    fetchBillDetails(selectedMonth);
     fetchBills();
+    showAlert('success', '✅ Payment processed successfully!');
   };
 
   const handleCalculate = async (id) => {
     try {
       await billAPI.calculate(id);
       fetchBills();
+      if (selectedMonth) {
+        fetchBillDetails(selectedMonth);
+      }
       showAlert('success', '✅ Bill calculated successfully!');
     } catch (err) {
       console.error('Error calculating bill:', err);
@@ -731,17 +654,45 @@ const Bills = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    // Premium delete confirmation with custom message
-    if (window.confirm('⚠️ Are you sure you want to delete this bill?\n\nThis action cannot be undone. All room readings and payment data will be permanently removed.')) {
-      try {
-        await billAPI.delete(id);
-        fetchBills();
-        showAlert('success', '✅ Bill deleted successfully!');
-      } catch (err) {
-        console.error('Error deleting bill:', err);
-        showAlert('error', '❌ Failed to delete bill. Please try again.');
+  const handleDeleteClick = (id) => {
+    const billToDelete = bills.find(b => b.id === id);
+    if (!billToDelete) {
+      showAlert('error', '❌ Bill not found.');
+      return;
+    }
+
+    const monthLabel = new Date(billToDelete.month).toLocaleDateString('en-US', {
+      month: 'long',
+      year: 'numeric'
+    });
+
+    setDeleteTargetId(id);
+    setDeleteTargetMonth(monthLabel);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await billAPI.delete(deleteTargetId);
+      await fetchBills();
+
+      if (selectedBill && selectedBill.id === deleteTargetId) {
+        setBillDetails([]);
+        setSelectedBill(null);
+        const remainingMonths = bills.filter(b => b.id !== deleteTargetId);
+        if (remainingMonths.length > 0) {
+          const sorted = remainingMonths.sort((a, b) => new Date(a.month) - new Date(b.month));
+          setSelectedMonth(sorted[sorted.length - 1].month);
+        } else {
+          setSelectedMonth('');
+        }
       }
+
+      setShowDeleteModal(false);
+      showAlert('success', `✅ Bill for ${deleteTargetMonth} deleted successfully!`);
+    } catch (err) {
+      console.error('Error deleting bill:', err);
+      showAlert('error', '❌ Failed to delete bill. Please try again.');
     }
   };
 
@@ -752,33 +703,59 @@ const Bills = () => {
     }).format(amount);
   };
 
-  const filteredBills = bills.filter(bill => {
-    const monthStr = bill.month ? new Date(bill.month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '';
-    const term = searchTerm.toLowerCase();
-    const matchesSearch = monthStr.toLowerCase().includes(term);
-    
-    if (filterStatus === 'closed') {
-      return bill.is_closed && matchesSearch;
-    } else if (filterStatus === 'active') {
-      return !bill.is_closed && matchesSearch;
-    }
-    return matchesSearch;
-  });
+  const getStatusBadge = (isPaid, totalAmount, paidAmount) => {
+    const total = parseFloat(totalAmount) || 0;
+    const paid = parseFloat(paidAmount) || 0;
 
-  const totalPages = Math.ceil(filteredBills.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentBills = filteredBills.slice(startIndex, endIndex);
+    if (total === 0) {
+      return { class: 'active', label: '⏳ Pending' };
+    }
+    if (paid >= total) {
+      return { class: 'closed', label: '✅ Paid' };
+    }
+    if (paid > 0 && paid < total) {
+      return { class: 'partial', label: '🔄 Partial' };
+    }
+    return { class: 'active', label: '⏳ Pending' };
+  };
+
+  /**
+   * Get tenant display name with priority:
+   * 1. tenant_name_snapshot (saved at bill generation time)
+   * 2. room.tenant_name (current tenant if room occupied)
+   * 3. '—' (fallback)
+   */
+  const getTenantDisplayName = (reading) => {
+    const roomData = reading.room_details || reading.room || {};
+
+    // Priority 1: Snapshot (historical data)
+    if (reading.tenant_name_snapshot && reading.tenant_name_snapshot.trim() !== '') {
+      return reading.tenant_name_snapshot;
+    }
+
+    // Priority 2: Current room tenant (if occupied)
+    if (roomData.tenant_name && roomData.tenant_name.trim() !== '') {
+      return roomData.tenant_name;
+    }
+
+    // Priority 3: Fallback
+    return '—';
+  };
+
+  const totalAmount = billDetails.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
+  const totalPaid = billDetails.reduce((sum, r) => sum + (parseFloat(r.paid_amount) || 0), 0);
+  const totalPending = totalAmount - totalPaid;
 
   const stats = [
     { icon: <FiDollarSign size={22} />, number: bills.length, label: 'Total Bills', change: '+12%', cardClass: 'card-gold' },
     { icon: <FiClock size={22} />, number: bills.filter(b => !b.is_closed).length, label: 'Active Bills', change: '+8%', cardClass: 'card-blue' },
     { icon: <FiCheck size={22} />, number: bills.filter(b => b.is_closed).length, label: 'Closed Bills', change: '-3%', cardClass: 'card-green' },
-    { icon: <FiTrendingUp size={22} />, 
-      number: `₹${formatAmount(bills.reduce((sum, b) => sum + (parseFloat(b.total_bill_amount) || 0), 0))}`, 
-      label: 'Total Amount', 
-      change: '+5%', 
-      cardClass: 'card-purple' 
+    {
+      icon: <FiTrendingUp size={22} />,
+      number: `₹${formatAmount(bills.reduce((sum, b) => sum + (parseFloat(b.total_bill_amount) || 0), 0))}`,
+      label: 'Total Amount',
+      change: '+5%',
+      cardClass: 'card-purple'
     },
   ];
 
@@ -795,23 +772,13 @@ const Bills = () => {
     return <Alert variant="danger" className="mt-4">{error}</Alert>;
   }
 
-  if (viewMode === 'details' && selectedBill) {
-    return (
-      <BillDetails 
-        bill={selectedBill} 
-        onBack={handleBackToList}
-        onPaymentComplete={handlePaymentComplete}
-      />
-    );
-  }
-
   return (
     <div className="fade-in-up">
       {alert && (
-        <CustomAlert 
-          type={alert.type} 
-          message={alert.message} 
-          onClose={() => setAlert(null)}
+        <CustomAlert
+          type={alert.type}
+          message={alert.message}
+          onClose={handleAlertClose}
         />
       )}
 
@@ -819,8 +786,16 @@ const Bills = () => {
         <div>
           <h1>
             <FiDollarSign size={28} className="bills-header-icon" />
-            Bills
+            Bills & Rent
           </h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '2px' }}>
+            {selectedBill && (
+              <>
+                <FiInfo size={14} style={{ marginRight: '4px' }} />
+                Tenant names from <strong>snapshots</strong> (historical data) - stays even after room vacated
+              </>
+            )}
+          </p>
         </div>
         <button className="btn-primary-gradient" onClick={() => setShowModal(true)}>
           <FiPlus size={16} /> Add New Bill
@@ -845,129 +820,208 @@ const Bills = () => {
         ))}
       </Row>
 
-      <div className="search-filter-bar">
-        <div className="search-box">
-          <FiCalendar className="search-icon" />
-          <input
-            type="text"
-            placeholder="Search by month (e.g. January 2026)..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+      {availableMonths.length > 0 && (
+        <>
+          <div className="month-selector-bar">
+            <div className="month-selector">
+              <FiCalendar className="month-selector-icon" />
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="month-select"
+              >
+                {availableMonths.map((month) => (
+                  <option key={month.value} value={month.value}>
+                    {month.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        <div className="filter-box">
-          <FiCheck className="filter-icon" />
-          <select 
-            value={filterStatus} 
-            onChange={(e) => setFilterStatus(e.target.value)}
-          >
-            <option value="all">All Bills</option>
-            <option value="active">Active</option>
-            <option value="closed">Closed</option>
-          </select>
-        </div>
+            <div className="month-actions">
+              {selectedBill && (
+                <>
+                  <button
+                    className="btn-ghost btn-sm"
+                    onClick={() => handleCalculate(selectedBill.id)}
+                    title="Calculate - This will save tenant name snapshots"
+                  >
+                    <FiRefreshCw size={14} /> Calculate & Save Snapshots
+                  </button>
+                  <button
+                    className="btn-ghost btn-sm delete-btn-sm"
+                    onClick={() => handleDeleteClick(selectedBill.id)}
+                    title={`Delete ${new Date(selectedBill.month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`}
+                  >
+                    <FiTrash2 size={14} /> Delete
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
 
-        <div className="bill-count">
-          {filteredBills.length} bills found
-        </div>
-      </div>
+          <Row className="g-3 mb-4">
+            <Col md={3} sm={6}>
+              <div className="stat-card card-purple" style={{ minHeight: '65px', padding: '12px 16px' }}>
+                <div className="stat-left">
+                  <div className="stat-icon"><FiDollarSign size={18} /></div>
+                  <span className="stat-change" style={{ fontSize: '9px' }}>Total</span>
+                </div>
+                <div className="stat-right">
+                  <div className="stat-number" style={{ fontSize: '18px' }}>₹{formatAmount(totalAmount)}</div>
+                  <div className="stat-label" style={{ fontSize: '10px' }}>Total Amount</div>
+                </div>
+                <div className="stat-glow" />
+              </div>
+            </Col>
+            <Col md={3} sm={6}>
+              <div className="stat-card card-green" style={{ minHeight: '65px', padding: '12px 16px' }}>
+                <div className="stat-left">
+                  <div className="stat-icon"><FiCheck size={18} /></div>
+                  <span className="stat-change" style={{ fontSize: '9px' }}>Received</span>
+                </div>
+                <div className="stat-right">
+                  <div className="stat-number" style={{ fontSize: '18px' }}>₹{formatAmount(totalPaid)}</div>
+                  <div className="stat-label" style={{ fontSize: '10px' }}>Amount Received</div>
+                </div>
+                <div className="stat-glow" />
+              </div>
+            </Col>
+            <Col md={3} sm={6}>
+              <div className="stat-card card-rose" style={{ minHeight: '65px', padding: '12px 16px' }}>
+                <div className="stat-left">
+                  <div className="stat-icon"><FiClock size={18} /></div>
+                  <span className="stat-change" style={{ fontSize: '9px' }}>Pending</span>
+                </div>
+                <div className="stat-right">
+                  <div className="stat-number" style={{ fontSize: '18px' }}>₹{formatAmount(totalPending)}</div>
+                  <div className="stat-label" style={{ fontSize: '10px' }}>Pending Amount</div>
+                </div>
+                <div className="stat-glow" />
+              </div>
+            </Col>
+            <Col md={3} sm={6}>
+              <div className="stat-card card-blue" style={{ minHeight: '65px', padding: '12px 16px' }}>
+                <div className="stat-left">
+                  <div className="stat-icon"><FiUser size={18} /></div>
+                  <span className="stat-change" style={{ fontSize: '9px' }}>Rooms</span>
+                </div>
+                <div className="stat-right">
+                  <div className="stat-number" style={{ fontSize: '18px' }}>{billDetails.length}</div>
+                  <div className="stat-label" style={{ fontSize: '10px' }}>Total Rooms</div>
+                </div>
+                <div className="stat-glow" />
+              </div>
+            </Col>
+          </Row>
+        </>
+      )}
 
       <div className="table-wrap">
-        {filteredBills.length === 0 ? (
+        {detailsLoading ? (
+          <div className="text-center py-4">
+            <div className="spinner-border text-primary" role="status" />
+            <p className="mt-2 text-muted">Loading details...</p>
+          </div>
+        ) : billDetails.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">💰</div>
-            <div className="empty-title">No bills found</div>
-            <div className="empty-sub">Create a new bill for this month.</div>
-            <button className="btn-primary-gradient mt-3" onClick={() => setShowModal(true)}>➕ Add Bill</button>
+            <div className="empty-icon">📋</div>
+            <div className="empty-title">No room readings found</div>
+            <div className="empty-sub">This bill has no room readings yet.</div>
           </div>
         ) : (
           <table className="table-premium">
             <thead>
               <tr>
-                <th className="col-sno">#</th>
-                <th className="col-month">Month</th>
-                <th className="col-rate">Per Unit (₹)</th>
-                <th className="col-units">Total Units</th>
-                <th className="col-total">Total Amount</th>
-                <th className="col-status">Status</th>
-                <th className="col-actions">Actions</th>
+                <th>Room</th>
+                <th>Tenant</th>
+                <th>Units</th>
+                <th>Rent</th>
+                <th>Bill</th>
+                <th>Total</th>
+                <th>Paid</th>
+                <th>Remaining</th>
+                <th>Status</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
-              {currentBills.map((bill, index) => (
-                <tr key={bill.id || index}>
-                  <td className="col-sno">{startIndex + index + 1}</td>
-                  <td className="col-month">
-                    {bill.month ? new Date(bill.month).toLocaleDateString('en-US', { 
-                      month: 'long', 
-                      year: 'numeric' 
-                    }) : 'N/A'}
-                  </td>
-                  <td className="col-rate">₹{parseFloat(bill.per_unit_rate) || 0}</td>
-                  <td className="col-units">{parseFloat(bill.total_units) || 0}</td>
-                  <td className="col-total">
-                    <strong style={{ color: '#6C63FF' }}>₹{formatAmount(parseFloat(bill.total_bill_amount) || 0)}</strong>
-                  </td>
-                  <td className="col-status">
-                    <span className={`badge-status ${bill.is_closed ? 'closed' : 'active'}`}>
-                      {bill.is_closed ? '✅ Closed' : '⏳ Active'}
-                    </span>
-                  </td>
-                  <td className="col-actions">
-                    <div className="table-actions">
-                      <button 
-                        className="action-btn view-btn" 
-                        title="View Details" 
-                        onClick={() => handleViewDetails(bill)}
-                      >
-                        <FiEye size={16} />
-                      </button>
-                      <button 
-                        className="action-btn calc-btn" 
-                        title="Calculate" 
-                        onClick={() => handleCalculate(bill.id)}
-                      >
-                        <FiRefreshCw size={16} />
-                      </button>
-                      <button 
-                        className="action-btn delete-btn" 
-                        title="Delete" 
-                        onClick={() => handleDelete(bill.id)}
-                      >
-                        <FiTrash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {billDetails.map((reading) => {
+                const roomData = reading.room_details || reading.room || {};
+                const roomNumber = roomData.room_number || '?';
+
+                const tenantName = getTenantDisplayName(reading);
+                const isFromSnapshot = !!reading.tenant_name_snapshot;
+
+                const rent = parseFloat(roomData.room_rent) || 0;
+                const total = parseFloat(reading.total_amount) || 0;
+                const paid = parseFloat(reading.paid_amount) || 0;
+                const remaining = total - paid;
+                const electricity = parseFloat(reading.electricity_charge) || 0;
+                const units = parseFloat(reading.units_consumed) || 0;
+                const status = getStatusBadge(reading.is_paid, total, paid);
+
+                return (
+                  <tr key={reading.id}>
+                    <td><strong>Room {roomNumber}</strong></td>
+                    <td>
+                      <span>
+                        {tenantName}
+                      </span>
+                    </td>
+                    <td>{units.toFixed(2)}</td>
+                    <td>₹{rent.toFixed(2)}</td>
+                    <td>₹{electricity.toFixed(2)}</td>
+                    <td><strong style={{ color: '#6C63FF' }}>₹{total.toFixed(2)}</strong></td>
+                    <td style={{ color: '#34D399' }}>₹{paid.toFixed(2)}</td>
+                    <td style={{ color: remaining > 0 ? '#F87171' : '#34D399' }}>
+                      ₹{remaining.toFixed(2)}
+                    </td>
+                    <td>
+                      <span className={`badge-status ${status.class}`}>
+                        {status.label}
+                      </span>
+                    </td>
+                    <td>
+                      {remaining > 0 && (
+                        <button
+                          className="action-btn edit-btn"
+                          title="Mark Paid"
+                          onClick={() => handlePaymentClick(reading)}
+                        >
+                          Pay ₹{remaining.toFixed(2)}
+                        </button>
+                      )}
+                      {remaining === 0 && total > 0 && (
+                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>✓ Paid</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
       </div>
 
-      {totalPages > 1 && (
-        <div className="pagination-custom">
-          <button 
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-          >
-            ← Prev
-          </button>
-          <span className="page-info">Page {currentPage} of {totalPages}</span>
-          <button 
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-          >
-            Next →
-          </button>
-        </div>
-      )}
+      <DeleteConfirmModal
+        show={showDeleteModal}
+        onHide={() => setShowDeleteModal(false)}
+        onConfirm={confirmDelete}
+        billMonth={deleteTargetMonth}
+      />
 
-      <AddBillModal 
-        show={showModal} 
-        onHide={() => setShowModal(false)} 
-        onBillAdded={handleBillAdded} 
+      <PaymentModal
+        show={showPaymentModal}
+        onHide={() => setShowPaymentModal(false)}
+        reading={selectedReading}
+        onPaymentComplete={handlePaymentComplete}
+      />
+
+      <AddBillModal
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        onBillAdded={handleBillAdded}
       />
     </div>
   );

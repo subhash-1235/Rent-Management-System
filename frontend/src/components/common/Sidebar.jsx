@@ -7,10 +7,10 @@ import {
   FiUsers, 
   FiClock, 
   FiSettings,
-  FiLogOut 
+  FiLogOut,
+  FiUserCheck
 } from 'react-icons/fi';
 import { MdDashboard } from 'react-icons/md';
-import { FaHome } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 import './Sidebar.css';
 
@@ -21,10 +21,10 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
   const navItems = [
     { path: '/', icon: <MdDashboard size={20} className="icon dashboard" />, label: 'Dashboard' },
-    { path: '/rooms', icon: <FiGrid size={20} className="icon rooms" />, label: 'Rooms' },
-    { path: '/bills', icon: <FiDollarSign size={20} className="icon bills" />, label: 'Bills' },
-    { path: '/tenants', icon: <FiUsers size={20} className="icon tenants" />, label: 'Tenants' },
+    { path: '/rooms', icon: <FiGrid size={20} className="icon rooms" />, label: 'Rooms & Tenants' },
+    { path: '/bills', icon: <FiDollarSign size={20} className="icon bills" />, label: 'Bills & Rent' },
     { path: '/history', icon: <FiClock size={20} className="icon history" />, label: 'History' },
+    { path: '/all-tenants', icon: <FiUserCheck size={20} className="icon tenants" />, label: 'All Tenants' },
     { path: '/settings', icon: <FiSettings size={20} className="icon settings" />, label: 'Settings' },
   ];
 

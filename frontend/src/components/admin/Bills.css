@@ -114,120 +114,98 @@
 }
 
 /* ========================================
-   SEARCH + FILTER BAR
+   MONTH SELECTOR BAR
    ======================================== */
-.search-filter-bar {
+.month-selector-bar {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 16px;
   margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-
-.search-box {
-  display: flex;
-  align-items: center;
+  padding: 12px 16px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  padding: 0 14px;
+  box-shadow: var(--shadow);
+}
+
+[data-bs-theme="dark"] .month-selector-bar {
+  background: #0A0E1A;
+}
+
+[data-bs-theme="light"] .month-selector-bar {
+  background: #FFFFFF;
+}
+
+.month-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   flex: 1;
-  min-width: 200px;
-  transition: all 0.3s ease;
 }
 
-.search-box:focus-within {
-  border-color: #6C63FF;
-  box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.08);
-}
-
-.search-box .search-icon {
+.month-selector-icon {
   color: var(--text-muted);
-  font-size: 18px;
-  margin-right: 10px;
-  flex-shrink: 0;
+  font-size: 20px;
 }
 
-.search-box input {
-  background: transparent;
-  border: none;
-  padding: 10px 0;
-  color: var(--text-primary);
-  font-size: 14px;
-  width: 100%;
-  outline: none;
-}
-
-.search-box input::placeholder {
-  color: var(--text-muted);
-}
-
-[data-bs-theme="light"] .search-box input {
-  color: #0A0A0A;
-}
-
-.filter-box {
-  display: flex;
-  align-items: center;
-  background: var(--bg-card);
+.month-select {
+  background: var(--bg-glass);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 0 14px;
-  min-width: 150px;
-  transition: all 0.3s ease;
-}
-
-.filter-box:focus-within {
-  border-color: #6C63FF;
-  box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.08);
-}
-
-.filter-box .filter-icon {
-  color: var(--text-muted);
-  font-size: 18px;
-  margin-right: 10px;
-  flex-shrink: 0;
-}
-
-.filter-box select {
-  background: transparent;
-  border: none;
-  padding: 10px 0;
+  border-radius: 10px;
+  padding: 10px 16px;
   color: var(--text-primary);
-  font-size: 14px;
-  width: 100%;
+  font-size: 15px;
+  font-weight: 600;
   outline: none;
   cursor: pointer;
+  min-width: 180px;
+  transition: all 0.3s ease;
 }
 
-[data-bs-theme="dark"] .filter-box select {
+.month-select:focus {
+  border-color: #6C63FF;
+  box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.08);
+}
+
+[data-bs-theme="dark"] .month-select {
   background-color: #1A2234;
   color: #FFFFFF;
 }
 
-[data-bs-theme="dark"] .filter-box select option {
+[data-bs-theme="dark"] .month-select option {
   background-color: #1A2234;
   color: #FFFFFF;
 }
 
-[data-bs-theme="light"] .filter-box select {
-  color: #0A0A0A;
-}
-
-[data-bs-theme="light"] .filter-box select option {
+[data-bs-theme="light"] .month-select {
   background-color: #FFFFFF;
   color: #0A0A0A;
 }
 
-.bill-count {
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 500;
-  white-space: nowrap;
-  padding: 8px 16px;
-  background: var(--bg-glass);
-  border-radius: 10px;
-  border: 1px solid var(--border-color);
+[data-bs-theme="light"] .month-select option {
+  background-color: #FFFFFF;
+  color: #0A0A0A;
+}
+
+.month-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-sm {
+  padding: 6px 14px !important;
+  font-size: 11px !important;
+  border-radius: 8px !important;
+}
+
+.delete-btn-sm {
+  color: #F87171 !important;
+}
+
+.delete-btn-sm:hover {
+  background: rgba(248, 113, 113, 0.12) !important;
+  border-color: #F87171 !important;
 }
 
 /* ========================================
@@ -299,42 +277,6 @@
   background: var(--bg-glass) !important;
 }
 
-/* ========================================
-   PAYMENT INFO IN MODAL
-   ======================================== */
-.payment-info {
-  background: var(--bg-glass);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 16px;
-  border: 1px solid var(--border-color);
-}
-
-.payment-info-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.payment-info-item:last-child {
-  border-bottom: none;
-}
-
-.payment-info-label {
-  color: var(--text-secondary);
-  font-size: 13px;
-}
-
-.payment-info-value {
-  color: var(--text-primary);
-  font-weight: 600;
-  font-size: 13px;
-}
-
-/* ========================================
-   FORM INPUTS IN MODAL
-   ======================================== */
 .modal-body .form-label {
   color: var(--text-secondary) !important;
   font-weight: 600 !important;
@@ -379,6 +321,74 @@
   color: #0A0A0A !important;
 }
 
+.modal-body .btn-primary-gradient {
+  background: linear-gradient(135deg, #6C63FF, #4A42C4) !important;
+  border: none !important;
+  padding: 12px 24px !important;
+  border-radius: 12px !important;
+  color: white !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 20px rgba(108, 99, 255, 0.2) !important;
+}
+
+.modal-body .btn-primary-gradient:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 30px rgba(108, 99, 255, 0.3) !important;
+}
+
+.modal-body .btn-ghost {
+  background: var(--bg-glass) !important;
+  border: 1px solid var(--border-color) !important;
+  padding: 12px 24px !important;
+  border-radius: 12px !important;
+  color: var(--text-secondary) !important;
+  font-weight: 600 !important;
+  font-size: 15px !important;
+  transition: all 0.3s ease !important;
+}
+
+.modal-body .btn-ghost:hover {
+  background: var(--bg-card-hover) !important;
+  border-color: #6C63FF !important;
+  color: var(--text-primary) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* ========================================
+   PAYMENT INFO IN MODAL
+   ======================================== */
+.payment-info {
+  background: var(--bg-glass);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border-color);
+}
+
+.payment-info-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.payment-info-item:last-child {
+  border-bottom: none;
+}
+
+.payment-info-label {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.payment-info-value {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 13px;
+}
+
 /* ========================================
    TABLE
    ======================================== */
@@ -417,41 +427,6 @@
   border-bottom: 2px solid rgba(74, 66, 196, 0.15);
 }
 
-.table-premium thead th.col-sno {
-  text-align: center;
-  width: 60px;
-}
-
-.table-premium thead th.col-month {
-  text-align: left;
-  width: 180px;
-}
-
-.table-premium thead th.col-rate {
-  text-align: center;
-  width: 120px;
-}
-
-.table-premium thead th.col-units {
-  text-align: center;
-  width: 120px;
-}
-
-.table-premium thead th.col-total {
-  text-align: center;
-  width: 140px;
-}
-
-.table-premium thead th.col-status {
-  text-align: center;
-  width: 130px;
-}
-
-.table-premium thead th.col-actions {
-  text-align: center;
-  width: 160px;
-}
-
 .table-premium tbody tr {
   transition: all 0.3s ease;
   background: var(--bg-glass);
@@ -469,38 +444,11 @@
   color: var(--text-primary);
   border-bottom: 1px solid var(--border-color);
   vertical-align: middle;
+  text-align: center;
 }
 
 [data-bs-theme="light"] .table-premium tbody td {
   color: #0A0A0A;
-}
-
-.table-premium tbody td.col-sno {
-  text-align: center;
-}
-
-.table-premium tbody td.col-month {
-  text-align: left;
-}
-
-.table-premium tbody td.col-rate {
-  text-align: center;
-}
-
-.table-premium tbody td.col-units {
-  text-align: center;
-}
-
-.table-premium tbody td.col-total {
-  text-align: center;
-}
-
-.table-premium tbody td.col-status {
-  text-align: center;
-}
-
-.table-premium tbody td.col-actions {
-  text-align: center;
 }
 
 /* ========================================
@@ -556,33 +504,6 @@
   color: white !important;
 }
 
-.view-btn {
-  background: linear-gradient(135deg, #06B6D4, #3B82F6) !important;
-  border: 1px solid rgba(6, 182, 212, 0.2) !important;
-}
-
-.view-btn:hover {
-  box-shadow: 0 8px 25px rgba(6, 182, 212, 0.25), 0 8px 25px rgba(59, 130, 246, 0.15) !important;
-}
-
-.calc-btn {
-  background: linear-gradient(135deg, #7C3AED, #EC4899) !important;
-  border: 1px solid rgba(124, 58, 237, 0.2) !important;
-}
-
-.calc-btn:hover {
-  box-shadow: 0 8px 25px rgba(124, 58, 237, 0.25), 0 8px 25px rgba(236, 72, 153, 0.15) !important;
-}
-
-.delete-btn {
-  background: linear-gradient(135deg, #EF4444, #F97316) !important;
-  border: 1px solid rgba(239, 68, 68, 0.2) !important;
-}
-
-.delete-btn:hover {
-  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.25), 0 8px 25px rgba(249, 115, 22, 0.15) !important;
-}
-
 .edit-btn {
   background: linear-gradient(135deg, #34D399, #059669) !important;
   border: 1px solid rgba(52, 211, 153, 0.2) !important;
@@ -599,44 +520,7 @@
 }
 
 /* ========================================
-   TOOLTIP
-   ======================================== */
-.action-btn[title] {
-  position: relative;
-}
-
-.action-btn[title]:hover::after {
-  content: attr(title);
-  position: absolute;
-  bottom: calc(100% + 12px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--bg-card);
-  color: var(--text-primary);
-  padding: 6px 14px;
-  border-radius: 8px;
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-  border: 1px solid var(--border-color);
-  z-index: 10;
-  animation: tooltipFade 0.3s ease;
-}
-
-@keyframes tooltipFade {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-}
-
-/* ========================================
-   STATUS BADGES - Different Colors
+   STATUS BADGES
    ======================================== */
 .badge-status {
   padding: 4px 14px;
@@ -649,7 +533,6 @@
   white-space: nowrap;
 }
 
-/* Paid - Green */
 .badge-status.closed {
   background: rgba(52, 211, 153, 0.15);
   color: #34D399;
@@ -662,7 +545,6 @@
   border: 1px solid rgba(52, 211, 153, 0.15);
 }
 
-/* Pending - Yellow */
 .badge-status.active {
   background: rgba(251, 191, 36, 0.15);
   color: #FBBF24;
@@ -675,7 +557,6 @@
   border: 1px solid rgba(251, 191, 36, 0.15);
 }
 
-/* Partial - Blue/Cyan */
 .badge-status.partial {
   background: rgba(6, 182, 212, 0.15);
   color: #22D3EE;
@@ -686,76 +567,6 @@
   background: rgba(6, 182, 212, 0.12);
   color: #0891B2;
   border: 1px solid rgba(6, 182, 212, 0.15);
-}
-
-/* ========================================
-   BILL DETAILS HEADER
-   ======================================== */
-.details-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.details-header h2 {
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--text-primary);
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.details-header-icon {
-  color: #6C63FF;
-  transition: all 0.3s ease;
-}
-
-[data-bs-theme="dark"] .details-header-icon {
-  color: #8B83FF;
-  filter: drop-shadow(0 0 12px rgba(108, 99, 255, 0.25));
-}
-
-[data-bs-theme="light"] .details-header-icon {
-  color: #6C63FF;
-}
-
-[data-bs-theme="dark"] .details-header h2 {
-  background: linear-gradient(135deg, #fff, rgba(255,255,255,0.5));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-[data-bs-theme="light"] .details-header h2 {
-  color: #0A0A0A;
-}
-
-.back-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--bg-glass);
-  border: 1px solid var(--border-color);
-  padding: 8px 18px;
-  border-radius: 10px;
-  color: var(--text-secondary);
-  font-weight: 600;
-  font-size: 13px;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.back-btn:hover {
-  background: var(--bg-card-hover);
-  color: var(--text-primary);
-  transform: translateX(-3px);
-  border-color: #6C63FF;
 }
 
 /* ========================================
@@ -785,59 +596,8 @@
 }
 
 /* ========================================
-   PAGINATION
-   ======================================== */
-.pagination-custom {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 5px;
-  padding-top: 10px;
-  margin-top: 10px;
-  border-top: 1px solid var(--border-color);
-}
-
-.pagination-custom button {
-  padding: 4px 12px;
-  border-radius: 6px;
-  border: 1px solid var(--border-color);
-  background: var(--bg-glass);
-  color: var(--text-secondary);
-  font-weight: 500;
-  font-size: 11px;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.pagination-custom button:hover {
-  background: var(--bg-card-hover);
-  border-color: #6C63FF;
-  color: var(--text-primary);
-}
-
-.pagination-custom button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.pagination-custom .page-info {
-  color: var(--text-secondary);
-  font-size: 11px;
-  margin: 0 5px;
-}
-
-/* ========================================
    RESPONSIVE
    ======================================== */
-@media (max-width: 992px) {
-  .table-premium thead th.col-month { width: 150px; }
-  .table-premium thead th.col-rate { width: 100px; }
-  .table-premium thead th.col-units { width: 100px; }
-  .table-premium thead th.col-total { width: 120px; }
-  .table-premium thead th.col-status { width: 110px; }
-  .table-premium thead th.col-actions { width: 140px; }
-}
-
 @media (max-width: 768px) {
   .bills-header {
     flex-direction: column;
@@ -847,18 +607,17 @@
   .bills-header h1 {
     font-size: 18px;
   }
-  .search-filter-bar {
+  .month-selector-bar {
     flex-direction: column;
     align-items: stretch;
+    gap: 10px;
   }
-  .search-box {
+  .month-select {
     min-width: unset;
+    width: 100%;
   }
-  .filter-box {
-    min-width: unset;
-  }
-  .bill-count {
-    text-align: center;
+  .month-actions {
+    justify-content: flex-end;
   }
   .action-btn {
     width: 32px;
@@ -889,18 +648,6 @@
   .modal-footer {
     padding: 12px 20px !important;
   }
-  .details-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  .details-header h2 {
-    font-size: 18px;
-  }
-  .back-btn {
-    padding: 6px 14px;
-    font-size: 12px;
-  }
 }
 
 @media (max-width: 576px) {
@@ -929,17 +676,12 @@
     height: 22px;
     font-size: 14px;
   }
-  .search-box input {
-    font-size: 13px;
-    padding: 8px 0;
+  .month-selector-bar {
+    padding: 10px 12px;
   }
-  .filter-box select {
+  .month-select {
     font-size: 13px;
-    padding: 8px 0;
-  }
-  .bill-count {
-    font-size: 12px;
-    padding: 6px 12px;
+    padding: 8px 12px;
   }
   .table-premium {
     font-size: 12px;
@@ -956,24 +698,77 @@
     font-size: 10px;
     padding: 3px 10px;
   }
+  .edit-btn {
+    font-size: 10px !important;
+    padding: 4px 10px !important;
+  }
   .modal-content {
     border-radius: 16px !important;
   }
   .modal-header .modal-title {
     font-size: 17px !important;
   }
-  .edit-btn {
-    font-size: 10px !important;
-    padding: 4px 10px !important;
-  }
-  .bill-details-container {
-    padding: 10px 0;
-  }
-  .details-header h2 {
-    font-size: 16px;
-  }
   .payment-info-item {
     font-size: 12px;
     padding: 4px 0;
   }
+}
+/* ========================================
+   DELETE CONFIRMATION MODAL - PREMIUM
+   ======================================== */
+.delete-confirm-content {
+  text-align: center;
+  padding: 8px 0;
+}
+
+.delete-confirm-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(251, 191, 36, 0.08);
+  margin: 0 auto 8px;
+}
+
+.delete-warning-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(248, 113, 113, 0.06);
+  border: 1px solid rgba(248, 113, 113, 0.1);
+  margin-top: 16px;
+  text-align: left;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.delete-warning-box span {
+  flex: 1;
+}
+
+.btn-delete-confirm {
+  background: linear-gradient(135deg, #EF4444, #DC2626) !important;
+  border: none !important;
+  padding: 10px 28px !important;
+  border-radius: 12px !important;
+  color: white !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.2) !important;
+}
+
+.btn-delete-confirm:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 30px rgba(239, 68, 68, 0.3) !important;
+}
+
+.btn-delete-confirm:disabled {
+  opacity: 0.6 !important;
+  transform: none !important;
 }

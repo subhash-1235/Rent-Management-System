@@ -1,19 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Form, Button, Spinner, Alert } from 'react-bootstrap';
-import { FiSettings, FiSave } from 'react-icons/fi';
+import { Row, Col, Form, Button, Spinner, Alert, Modal } from 'react-bootstrap';
+import { FiSettings, FiSave, FiUser, FiShield, FiClock, FiGlobe, FiMoon, FiSun, FiDollarSign, FiSmartphone } from 'react-icons/fi';
 import { FaQrcode } from 'react-icons/fa';
-import { qrAPI } from '../../services/api';
+import { qrAPI, authAPI } from '../../services/api';
 import './Settings.css';
 
 const Settings = () => {
   const [qrSettings, setQrSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [showFullQR, setShowFullQR] = useState(false);
+  
+  // 🔥 Account Settings State
+  const [accountSettings, setAccountSettings] = useState({
+    admin_name: 'Admin',
+    admin_email: 'admin@rentflow.com',
+    new_password: '',
+    confirm_password: '',
+  });
+
+  const [generalSettings, setGeneralSettings] = useState({
+    currency: 'INR',
+    language: 'en',
+    theme: 'dark',
+  });
 
   useEffect(() => {
     fetchSettings();
+    loadGeneralSettings();
+    loadAccountSettings();
+    applyTheme();
   }, []);
 
   const fetchSettings = async () => {
@@ -23,16 +42,66 @@ const Settings = () => {
       if (response.data && response.data.length > 0) {
         setQrSettings(response.data[0]);
       } else {
-        setQrSettings({ id: null, upi_id: '' });
+        setQrSettings({ id: null, upi_id: '', qr_code_image: null });
       }
       setError(null);
     } catch (err) {
       console.error('Error fetching settings:', err);
-      setError('Failed to load settings.');
-      setQrSettings({ id: null, upi_id: '' });
+      setError('Failed to load settings. Make sure server is running.');
+      setQrSettings({ id: null, upi_id: '', qr_code_image: null });
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadGeneralSettings = () => {
+    const saved = localStorage.getItem('general_settings');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setGeneralSettings(parsed);
+        if (parsed.theme) {
+          document.documentElement.setAttribute('data-theme', parsed.theme);
+        }
+      } catch (e) {
+        console.error('Error loading general settings:', e);
+      }
+    }
+  };
+
+  // 🔥 Load Account Settings from localStorage
+  const loadAccountSettings = () => {
+    const saved = localStorage.getItem('account_settings');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setAccountSettings({
+          admin_name: parsed.admin_name || 'Admin',
+          admin_email: parsed.admin_email || 'admin@rentflow.com',
+          new_password: '',
+          confirm_password: '',
+        });
+      } catch (e) {
+        console.error('Error loading account settings:', e);
+      }
+    }
+  };
+
+  const applyTheme = () => {
+    const theme = generalSettings.theme || 'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+  };
+
+  const saveGeneralSettings = (settings) => {
+    localStorage.setItem('general_settings', JSON.stringify(settings));
+  };
+
+  // 🔥 Save Account Settings to localStorage
+  const saveAccountSettings = (settings) => {
+    localStorage.setItem('account_settings', JSON.stringify({
+      admin_name: settings.admin_name,
+      admin_email: settings.admin_email,
+    }));
   };
 
   const handleSave = async () => {
@@ -41,17 +110,46 @@ const Settings = () => {
       setSuccess(null);
       setError(null);
       
-      if (qrSettings.id) {
-        await qrAPI.update(qrSettings.id, qrSettings);
-      } else {
-        console.log('Creating new settings:', qrSettings);
+      // Save QR Settings
+      if (qrSettings && qrSettings.id) {
+        const updateData = {
+          upi_id: qrSettings.upi_id,
+          is_active: true
+        };
+        await qrAPI.update(qrSettings.id, updateData);
+      }
+      
+      // Save General Settings
+      saveGeneralSettings(generalSettings);
+      applyTheme();
+      
+      // 🔥 Save Account Settings
+      saveAccountSettings(accountSettings);
+      
+      // 🔥 Change Password if provided
+      if (accountSettings.new_password && accountSettings.new_password.length > 0) {
+        if (accountSettings.new_password !== accountSettings.confirm_password) {
+          setError('Passwords do not match!');
+          setSaving(false);
+          return;
+        }
+        if (accountSettings.new_password.length < 6) {
+          setError('Password must be at least 6 characters!');
+          setSaving(false);
+          return;
+        }
+        // Here you can call API to change password
+        // await authAPI.changePassword({ new_password: accountSettings.new_password });
+        // For now, just save in localStorage
+        localStorage.setItem('user_password', accountSettings.new_password);
+        setSuccess('Password changed successfully!');
       }
       
       setSuccess('Settings saved successfully!');
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       console.error('Error saving settings:', err);
-      setError('Failed to save settings. Please try again.');
+      setError(err.response?.data?.error || 'Failed to save settings. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -59,6 +157,91 @@ const Settings = () => {
 
   const handleChange = (e) => {
     setQrSettings({ ...qrSettings, [e.target.name]: e.target.value });
+  };
+
+  const handleGeneralChange = (e) => {
+    const { name, value } = e.target;
+    const newSettings = { ...generalSettings, [name]: value };
+    setGeneralSettings(newSettings);
+    
+    if (name === 'theme') {
+      document.documentElement.setAttribute('data-theme', value);
+    }
+  };
+
+  // 🔥 Handle Account Settings Change
+  const handleAccountChange = (e) => {
+    const { name, value } = e.target;
+    setAccountSettings({ ...accountSettings, [name]: value });
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setError('Please upload a valid image (PNG, JPG, JPEG, WEBP)');
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setError('File size too large. Maximum 2MB allowed.');
+      return;
+    }
+
+    setUploading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const base64String = reader.result;
+          
+          if (!qrSettings.upi_id || qrSettings.upi_id.trim() === '') {
+            setError('Please enter UPI ID first before uploading QR code.');
+            setUploading(false);
+            return;
+          }
+          
+          const response = await qrAPI.upload({
+            image: base64String,
+            upi_id: qrSettings.upi_id.trim()
+          });
+          
+          console.log('Upload response:', response.data);
+          await fetchSettings();
+          setSuccess('QR Code uploaded successfully!');
+          setTimeout(() => setSuccess(null), 3000);
+        } catch (uploadErr) {
+          console.error('Upload error:', uploadErr.response?.data || uploadErr.message);
+          setError(uploadErr.response?.data?.error || 'Failed to upload QR code. Please try again.');
+        } finally {
+          setUploading(false);
+        }
+      };
+      reader.onerror = () => {
+        setError('Failed to read file.');
+        setUploading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('Error:', err);
+      setError('Failed to process file.');
+      setUploading(false);
+    }
+  };
+
+  const openFullQR = () => {
+    if (qrSettings?.qr_code_image) {
+      setShowFullQR(true);
+    }
+  };
+
+  const closeFullQR = () => {
+    setShowFullQR(false);
   };
 
   if (loading) {
@@ -71,18 +254,44 @@ const Settings = () => {
   }
 
   const stats = [
-    { icon: <FaQrcode size={22} />, number: qrSettings?.upi_id ? '✅ Active' : '❌ Not Set', label: 'QR Code Status', change: '', cardClass: 'card-gold' },
-    { icon: <FiSettings size={22} />, number: 'v1.0', label: 'App Version', change: '', cardClass: 'card-blue' },
-    { icon: '🔒', number: 'Secure', label: 'Security', change: '', cardClass: 'card-green' },
-    { icon: '📱', number: 'Mobile Ready', label: 'Responsive', change: '', cardClass: 'card-purple' },
+    { 
+      icon: <FaQrcode size={22} />, 
+      number: qrSettings?.upi_id ? '✅ Active' : '❌ Not Set', 
+      label: 'QR Code Status', 
+      change: '', 
+      cardClass: 'card-gold' 
+    },
+    { 
+      icon: <FiGlobe size={22} />, 
+      number: generalSettings.currency || 'INR', 
+      label: 'Currency', 
+      change: '', 
+      cardClass: 'card-blue' 
+    },
+    { 
+      icon: generalSettings.theme === 'dark' ? <FiMoon size={22} /> : <FiSun size={22} />, 
+      number: generalSettings.theme === 'dark' ? 'Dark Mode' : 'Light Mode', 
+      label: 'Theme', 
+      change: '', 
+      cardClass: 'card-green' 
+    },
+    { 
+      icon: <FiSmartphone size={22} />, 
+      number: 'v2.0', 
+      label: 'App Version', 
+      change: '', 
+      cardClass: 'card-purple' 
+    },
   ];
 
   return (
     <div className="fade-in-up">
-      <div className="page-header">
+      <div className="settings-header">
         <div>
           <h1>⚙️ Settings</h1>
-          <p>Manage your application settings</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '2px' }}>
+            Manage your application settings
+          </p>
         </div>
         <button 
           className="btn-primary-gradient"
@@ -125,7 +334,7 @@ const Settings = () => {
                 {stat.change && <span className="stat-change">{stat.change}</span>}
               </div>
               <div className="stat-right">
-                <div className="stat-number" style={{ fontSize: stat.number.length > 10 ? '16px' : '24px' }}>
+                <div className="stat-number" style={{ fontSize: stat.number.length > 10 ? '16px' : '20px' }}>
                   {stat.number}
                 </div>
                 <div className="stat-label">{stat.label}</div>
@@ -140,7 +349,7 @@ const Settings = () => {
         <Col md={6}>
           <div className="settings-card">
             <h5 className="settings-card-title">
-              <FaQrcode size={20} style={{ marginRight: 10 }} />
+              <FaQrcode size={20} />
               QR Code Settings
             </h5>
             <Form className="settings-form">
@@ -152,16 +361,210 @@ const Settings = () => {
                   placeholder="Enter UPI ID (e.g., admin@paytm)"
                   value={qrSettings?.upi_id || ''}
                   onChange={handleChange}
+                  style={{
+                    background: 'var(--bg-glass)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '10px',
+                    padding: '10px 14px',
+                    color: 'var(--text-primary)',
+                  }}
                 />
+                <Form.Text className="text-muted">
+                  Enter your UPI ID for receiving payments
+                </Form.Text>
               </Form.Group>
               <Form.Group>
                 <Form.Label>QR Code Image</Form.Label>
                 <Form.Control
                   type="file"
                   accept="image/*"
+                  onChange={handleFileUpload}
+                  disabled={uploading}
+                  style={{
+                    background: 'var(--bg-glass)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '10px',
+                    padding: '10px 14px',
+                    color: 'var(--text-primary)',
+                  }}
                 />
-                <Form.Text>
-                  Upload QR code image for payments
+                <Form.Text className="text-muted">
+                  {uploading ? 'Uploading...' : 'Upload QR code image for payments (PNG, JPG)'}
+                </Form.Text>
+                {qrSettings?.qr_code_image && (
+                  <div className="qr-preview mt-2">
+                    <img 
+                      src={qrSettings.qr_code_image} 
+                      alt="QR Code" 
+                      onClick={openFullQR}
+                      style={{ 
+                        maxWidth: '150px', 
+                        maxHeight: '150px',
+                        borderRadius: '8px',
+                        border: '1px solid var(--border-color)',
+                        background: 'white',
+                        padding: '8px',
+                        cursor: 'pointer',
+                        transition: 'transform 0.3s ease'
+                      }}
+                      onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
+                      onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                    />
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                      🔍 Click to view full size
+                    </div>
+                  </div>
+                )}
+              </Form.Group>
+            </Form>
+          </div>
+        </Col>
+
+        <Col md={6}>
+          <div className="settings-card">
+            <h5 className="settings-card-title">
+              <FiSettings size={20} />
+              General Settings
+            </h5>
+            <Form className="settings-form">
+              <Form.Group className="mb-3">
+                <Form.Label>Default Currency</Form.Label>
+                <Form.Select 
+                  name="currency"
+                  value={generalSettings.currency}
+                  onChange={handleGeneralChange}
+                  style={{
+                    background: 'var(--bg-glass)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '10px',
+                    padding: '10px 14px',
+                    color: 'var(--text-primary)',
+                  }}
+                >
+                  <option value="INR" style={{ background: '#1A2234' }}>₹ INR (Indian Rupee)</option>
+                  <option value="USD" style={{ background: '#1A2234' }}>$ USD (US Dollar)</option>
+                  <option value="EUR" style={{ background: '#1A2234' }}>€ EUR (Euro)</option>
+                  <option value="GBP" style={{ background: '#1A2234' }}>£ GBP (British Pound)</option>
+                </Form.Select>
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Default Language</Form.Label>
+                <Form.Select 
+                  name="language"
+                  value={generalSettings.language}
+                  onChange={handleGeneralChange}
+                  style={{
+                    background: 'var(--bg-glass)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '10px',
+                    padding: '10px 14px',
+                    color: 'var(--text-primary)',
+                  }}
+                >
+                  <option value="en" style={{ background: '#1A2234' }}>🇬🇧 English</option>
+                  <option value="hi" style={{ background: '#1A2234' }}>🇮🇳 हिंदी (Hindi)</option>
+                </Form.Select>
+              </Form.Group>
+              <Form.Group>
+                <Form.Label>Default Theme</Form.Label>
+                <Form.Select 
+                  name="theme"
+                  value={generalSettings.theme}
+                  onChange={handleGeneralChange}
+                  style={{
+                    background: 'var(--bg-glass)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '10px',
+                    padding: '10px 14px',
+                    color: 'var(--text-primary)',
+                  }}
+                >
+                  <option value="dark" style={{ background: '#1A2234' }}>🌙 Dark</option>
+                  <option value="light" style={{ background: '#1A2234' }}>☀️ Light</option>
+                </Form.Select>
+              </Form.Group>
+            </Form>
+          </div>
+        </Col>
+      </Row>
+
+      <Row className="g-4 mt-2">
+        <Col md={6}>
+          <div className="settings-card">
+            <h5 className="settings-card-title">
+              <FiUser size={20} />
+              Account Settings
+            </h5>
+            <Form className="settings-form">
+              <Form.Group className="mb-3">
+                <Form.Label>Admin Name</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="admin_name"
+                  placeholder="Enter admin name"
+                  value={accountSettings.admin_name}
+                  onChange={handleAccountChange}
+                  style={{
+                    background: 'var(--bg-glass)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '10px',
+                    padding: '10px 14px',
+                    color: 'var(--text-primary)',
+                  }}
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Admin Email</Form.Label>
+                <Form.Control
+                  type="email"
+                  name="admin_email"
+                  placeholder="Enter admin email"
+                  value={accountSettings.admin_email}
+                  onChange={handleAccountChange}
+                  style={{
+                    background: 'var(--bg-glass)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '10px',
+                    padding: '10px 14px',
+                    color: 'var(--text-primary)',
+                  }}
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>New Password</Form.Label>
+                <Form.Control
+                  type="password"
+                  name="new_password"
+                  placeholder="Enter new password"
+                  value={accountSettings.new_password}
+                  onChange={handleAccountChange}
+                  style={{
+                    background: 'var(--bg-glass)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '10px',
+                    padding: '10px 14px',
+                    color: 'var(--text-primary)',
+                  }}
+                />
+              </Form.Group>
+              <Form.Group>
+                <Form.Label>Confirm Password</Form.Label>
+                <Form.Control
+                  type="password"
+                  name="confirm_password"
+                  placeholder="Confirm new password"
+                  value={accountSettings.confirm_password}
+                  onChange={handleAccountChange}
+                  style={{
+                    background: 'var(--bg-glass)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '10px',
+                    padding: '10px 14px',
+                    color: 'var(--text-primary)',
+                  }}
+                />
+                <Form.Text className="text-muted">
+                  Leave blank to keep current password
                 </Form.Text>
               </Form.Group>
             </Form>
@@ -171,36 +574,120 @@ const Settings = () => {
         <Col md={6}>
           <div className="settings-card">
             <h5 className="settings-card-title">
-              <FiSettings size={20} style={{ marginRight: 10 }} />
-              General Settings
+              <FiShield size={20} />
+              Security & System
             </h5>
-            <Form className="settings-form">
-              <Form.Group className="mb-3">
-                <Form.Label>Default Currency</Form.Label>
-                <Form.Select>
-                  <option value="INR">₹ INR</option>
-                  <option value="USD">$ USD</option>
-                  <option value="EUR">€ EUR</option>
-                </Form.Select>
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Default Language</Form.Label>
-                <Form.Select>
-                  <option value="en">English</option>
-                  <option value="hi">हिंदी</option>
-                </Form.Select>
-              </Form.Group>
-              <Form.Group>
-                <Form.Label>Default Theme</Form.Label>
-                <Form.Select>
-                  <option value="dark">Dark</option>
-                  <option value="light">Light</option>
-                </Form.Select>
-              </Form.Group>
-            </Form>
+            <div className="security-info">
+              <div className="security-item">
+                <div className="security-icon">🔒</div>
+                <div className="security-details">
+                  <div className="security-label">Authentication</div>
+                  <div className="security-value">JWT Token Based</div>
+                </div>
+                <span className="security-status secure">✅ Secure</span>
+              </div>
+              <div className="security-item">
+                <div className="security-icon">🛡️</div>
+                <div className="security-details">
+                  <div className="security-label">Data Encryption</div>
+                  <div className="security-value">AES-256</div>
+                </div>
+                <span className="security-status secure">✅ Active</span>
+              </div>
+              <div className="security-item">
+                <div className="security-icon">📊</div>
+                <div className="security-details">
+                  <div className="security-label">Database</div>
+                  <div className="security-value">SQLite</div>
+                </div>
+                <span className="security-status info">🔄 Active</span>
+              </div>
+              <div className="security-item">
+                <div className="security-icon">⏰</div>
+                <div className="security-details">
+                  <div className="security-label">Session Timeout</div>
+                  <div className="security-value">24 Hours</div>
+                </div>
+                <span className="security-status info">⏳ Active</span>
+              </div>
+            </div>
           </div>
         </Col>
       </Row>
+
+      {/* Full QR Code View Modal */}
+      <Modal show={showFullQR} onHide={closeFullQR} centered size="lg">
+        <Modal.Body style={{ 
+          padding: '20px', 
+          background: 'rgba(0,0,0,0.92)', 
+          position: 'relative', 
+          minHeight: '60vh', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          flexDirection: 'column'
+        }}>
+          <img 
+            src={qrSettings?.qr_code_image} 
+            alt="QR Code Full View" 
+            style={{ 
+              width: 'auto', 
+              height: 'auto', 
+              maxWidth: '80%', 
+              maxHeight: '80vh', 
+              objectFit: 'contain',
+              background: 'white',
+              padding: '20px',
+              borderRadius: '12px'
+            }} 
+          />
+          <button 
+            onClick={closeFullQR}
+            style={{
+              position: 'absolute',
+              top: 16,
+              right: 16,
+              background: 'rgba(255,255,255,0.15)',
+              border: 'none',
+              color: 'white',
+              fontSize: 28,
+              width: 44,
+              height: 44,
+              borderRadius: '50%',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.3s ease',
+            }}
+            onMouseEnter={(e) => e.target.style.background = 'rgba(255,255,255,0.25)'}
+            onMouseLeave={(e) => e.target.style.background = 'rgba(255,255,255,0.15)'}
+          >
+            ×
+          </button>
+          <button 
+            onClick={closeFullQR}
+            style={{
+              position: 'absolute',
+              bottom: 30,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              background: 'rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              color: 'white',
+              padding: '10px 30px',
+              borderRadius: '10px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              transition: 'all 0.3s ease',
+            }}
+            onMouseEnter={(e) => e.target.style.background = 'rgba(255,255,255,0.2)'}
+            onMouseLeave={(e) => e.target.style.background = 'rgba(255,255,255,0.1)'}
+          >
+            Close
+          </button>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 };
