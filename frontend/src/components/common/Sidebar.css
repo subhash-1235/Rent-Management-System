@@ -7,11 +7,12 @@
   left: 0;
   height: 100vh;
   width: 240px;
-  padding: 10px 16px;
+  padding: 16px 14px;
   z-index: 1000;
   overflow-y: auto;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   box-shadow: var(--shadow);
+  background: var(--bg-card);
 }
 
 [data-bs-theme="dark"] .sidebar {
@@ -34,27 +35,52 @@
 }
 
 /* ========================================
+   SIDEBAR OVERLAY - Mobile
+   ======================================== */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 999;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ========================================
    SIDEBAR BRAND
    ======================================== */
 .sidebar-brand {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 14px;
-  margin-bottom: 28px;
+  padding: 8px 10px;
+  margin-bottom: 20px;
   border-bottom: 1px solid var(--border-color);
 }
 
 .sidebar-brand .logo-icon {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   background: linear-gradient(135deg, #6C63FF, #FF6B8A);
-  border-radius: 14px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: 20px;
   box-shadow: 0 8px 25px rgba(108, 99, 255, 0.2);
+  flex-shrink: 0;
 }
 
 [data-bs-theme="dark"] .sidebar-brand .brand-text {
@@ -71,14 +97,14 @@
 
 .sidebar-brand .brand-text {
   font-weight: 800;
-  font-size: 20px;
+  font-size: 18px;
 }
 
 .sidebar-brand .brand-sub {
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 600;
   color: var(--text-secondary);
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
 }
 
@@ -89,6 +115,7 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  flex: 1;
 }
 
 .sidebar-nav li {
@@ -98,9 +125,9 @@
 .sidebar-nav li a {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 12px 14px;
-  border-radius: 12px;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
   color: var(--text-secondary);
   text-decoration: none;
   font-weight: 500;
@@ -110,8 +137,8 @@
 }
 
 .sidebar-nav li a .icon {
-  font-size: 20px;
-  width: 24px;
+  font-size: 18px;
+  width: 22px;
   text-align: center;
   flex-shrink: 0;
 }
@@ -151,8 +178,8 @@
   margin-left: auto;
   background: linear-gradient(135deg, #6C63FF, #FF6B8A);
   color: white;
-  font-size: 10px;
-  padding: 1px 10px;
+  font-size: 9px;
+  padding: 1px 8px;
   border-radius: 20px;
   font-weight: 700;
 }
@@ -161,67 +188,190 @@
    SIDEBAR BOTTOM
    ======================================== */
 .sidebar-bottom {
-  position: absolute;
-  bottom: 20px;
-  left: 16px;
-  right: 16px;
-  padding-top: 16px;
+  padding-top: 14px;
   border-top: 1px solid var(--border-color);
+  margin-top: auto;
 }
 
 .sidebar-user {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  border-radius: 14px;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 12px;
   background: var(--bg-glass);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .sidebar-user .avatar {
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: linear-gradient(135deg, #6C63FF, #FF6B8A);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 14px;
   color: white;
+  flex-shrink: 0;
 }
 
 .sidebar-user .user-info .name {
   font-weight: 600;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-primary);
 }
 
 .sidebar-user .user-info .email {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-secondary);
 }
 
 .btn-logout-sidebar {
   width: 100%;
-  padding: 12px;
-  border-radius: 12px;
+  padding: 10px;
+  border-radius: 10px;
   border: none;
   background: linear-gradient(135deg, #FF6B8A, #FF4D6A);
   color: white;
-  font-weight: 700;
-  font-size: 14px;
+  font-weight: 600;
+  font-size: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 6px 20px rgba(255, 107, 138, 0.2);
+  box-shadow: 0 4px 15px rgba(255, 107, 138, 0.15);
 }
 
 .btn-logout-sidebar:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(255, 107, 138, 0.3);
+  box-shadow: 0 8px 25px rgba(255, 107, 138, 0.25);
+}
+
+/* ========================================
+   RESPONSIVE - MOBILE
+   ======================================== */
+@media (max-width: 992px) {
+  .sidebar {
+    transform: translateX(-100%);
+    width: 260px;
+  }
+  
+  .sidebar.open {
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 576px) {
+  .sidebar {
+    width: 230px;
+    padding: 12px 10px;
+  }
+  
+  .sidebar-brand .logo-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+  }
+  
+  .sidebar-brand .brand-text {
+    font-size: 16px;
+  }
+  
+  .sidebar-brand .brand-sub {
+    font-size: 7px;
+  }
+  
+  .sidebar-nav li a {
+    font-size: 12px;
+    padding: 8px 10px;
+    gap: 10px;
+  }
+  
+  .sidebar-nav li a .icon {
+    font-size: 16px;
+    width: 20px;
+  }
+  
+  .sidebar-user {
+    padding: 6px 10px;
+  }
+  
+  .sidebar-user .avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+  
+  .sidebar-user .user-info .name {
+    font-size: 11px;
+  }
+  
+  .sidebar-user .user-info .email {
+    font-size: 9px;
+  }
+  
+  .btn-logout-sidebar {
+    padding: 8px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 380px) {
+  .sidebar {
+    width: 200px;
+    padding: 10px 8px;
+  }
+  
+  .sidebar-brand {
+    padding: 4px 6px;
+    margin-bottom: 12px;
+  }
+  
+  .sidebar-brand .logo-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+  
+  .sidebar-brand .brand-text {
+    font-size: 14px;
+  }
+  
+  .sidebar-brand .brand-sub {
+    font-size: 6px;
+  }
+  
+  .sidebar-nav li a {
+    font-size: 11px;
+    padding: 6px 8px;
+    gap: 8px;
+  }
+  
+  .sidebar-nav li a .icon {
+    font-size: 14px;
+    width: 18px;
+  }
+  
+  .sidebar-user .avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
+  }
+  
+  .sidebar-user .user-info .name {
+    font-size: 10px;
+  }
+  
+  .sidebar-user .user-info .email {
+    font-size: 8px;
+  }
+  
+  .btn-logout-sidebar {
+    padding: 6px;
+    font-size: 10px;
+  }
 }

@@ -158,7 +158,7 @@ const DeleteConfirmModal = ({ show, onHide, onConfirm, roomNumber }) => {
 };
 
 // ========================================
-// ADD ROOM MODAL
+// ADD ROOM MODAL - COMPLETE FIXED
 // ========================================
 const AddRoomModal = ({ show, onHide, onRoomAdded, rooms }) => {
   const [formData, setFormData] = useState({
@@ -177,6 +177,27 @@ const AddRoomModal = ({ show, onHide, onRoomAdded, rooms }) => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Reset form when modal opens
+  useEffect(() => {
+    if (show) {
+      setFormData({
+        room_number: '',
+        tenant_name: '',
+        tenant_mobile: '',
+        tenant_email: '',
+        room_rent: '',
+        move_in_date: '',
+        address: '',
+        aadhar_front: null,
+        aadhar_back: null,
+        aadhar_front_preview: null,
+        aadhar_back_preview: null,
+        is_active: true,
+      });
+      setError(null);
+    }
+  }, [show]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -201,11 +222,17 @@ const AddRoomModal = ({ show, onHide, onRoomAdded, rooms }) => {
     }
   };
 
+  const handleDateChange = (e) => {
+    const value = e.target.value;
+    setFormData({ ...formData, move_in_date: value });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
+    // 🔥 ALL FIELDS REQUIRED - Check everything
     if (!formData.room_number) {
       setError('⚠️ Room Number is required.');
       setLoading(false);
@@ -274,20 +301,6 @@ const AddRoomModal = ({ show, onHide, onRoomAdded, rooms }) => {
       
       onRoomAdded();
       onHide();
-      setFormData({
-        room_number: '',
-        tenant_name: '',
-        tenant_mobile: '',
-        tenant_email: '',
-        room_rent: '',
-        move_in_date: '',
-        address: '',
-        aadhar_front: null,
-        aadhar_back: null,
-        aadhar_front_preview: null,
-        aadhar_back_preview: null,
-        is_active: true,
-      });
     } catch (err) {
       console.error('Error adding room:', err);
       setError('Failed to add room. Please try again.');
@@ -298,18 +311,20 @@ const AddRoomModal = ({ show, onHide, onRoomAdded, rooms }) => {
 
   return (
     <Modal show={show} onHide={onHide} size="lg" centered>
-      <Modal.Header style={{ borderBottom: '1px solid var(--border-color)', padding: '12px 18px' }}>
-        <Modal.Title style={{ color: 'var(--text-primary)', fontSize: '16px', fontWeight: 700 }}>
+      <Modal.Header style={{ borderBottom: '1px solid var(--border-color)', padding: '14px 20px' }}>
+        <Modal.Title style={{ color: 'var(--text-primary)', fontSize: '18px', fontWeight: 700 }}>
           🏠 Add New Room & Tenant
         </Modal.Title>
       </Modal.Header>
-      <Modal.Body style={{ background: 'var(--bg-primary)', padding: '14px 18px', maxHeight: '70vh', overflow: 'auto' }}>
+      <Modal.Body style={{ background: 'var(--bg-primary)', padding: '20px 24px', maxHeight: '70vh', overflow: 'auto' }}>
         {error && <CustomAlert type="error" message={error} onClose={() => setError(null)} />}
         <Form onSubmit={handleSubmit}>
           <Row>
             <Col md={6}>
-              <Form.Group className="mb-2">
-                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>Room Number <span style={{ color: '#F87171' }}>*</span></Form.Label>
+              <Form.Group className="mb-3">
+                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600 }}>
+                  Room Number <span style={{ color: '#F87171' }}>*</span>
+                </Form.Label>
                 <Form.Control
                   type="number"
                   name="room_number"
@@ -331,8 +346,10 @@ const AddRoomModal = ({ show, onHide, onRoomAdded, rooms }) => {
               </Form.Group>
             </Col>
             <Col md={6}>
-              <Form.Group className="mb-2">
-                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>Tenant Name <span style={{ color: '#F87171' }}>*</span></Form.Label>
+              <Form.Group className="mb-3">
+                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600 }}>
+                  Tenant Name <span style={{ color: '#F87171' }}>*</span>
+                </Form.Label>
                 <Form.Control
                   type="text"
                   name="tenant_name"
@@ -356,8 +373,10 @@ const AddRoomModal = ({ show, onHide, onRoomAdded, rooms }) => {
 
           <Row>
             <Col md={6}>
-              <Form.Group className="mb-2">
-                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>Mobile Number <span style={{ color: '#F87171' }}>*</span></Form.Label>
+              <Form.Group className="mb-3">
+                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600 }}>
+                  Mobile Number <span style={{ color: '#F87171' }}>*</span>
+                </Form.Label>
                 <Form.Control
                   type="tel"
                   name="tenant_mobile"
@@ -379,12 +398,14 @@ const AddRoomModal = ({ show, onHide, onRoomAdded, rooms }) => {
                   maxLength="10"
                   required
                 />
-                <small style={{ color: 'var(--text-muted)', fontSize: '10px' }}>Enter 10-digit mobile number (only numbers)</small>
+                <small style={{ color: 'var(--text-muted)', fontSize: '11px' }}>Enter 10-digit mobile number (only numbers)</small>
               </Form.Group>
             </Col>
             <Col md={6}>
-              <Form.Group className="mb-2">
-                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>Email</Form.Label>
+              <Form.Group className="mb-3">
+                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600 }}>
+                  Email <span style={{ color: '#F87171' }}>*</span>
+                </Form.Label>
                 <Form.Control
                   type="email"
                   name="tenant_email"
@@ -400,6 +421,7 @@ const AddRoomModal = ({ show, onHide, onRoomAdded, rooms }) => {
                   }}
                   value={formData.tenant_email}
                   onChange={handleChange}
+                  required
                 />
               </Form.Group>
             </Col>
@@ -407,8 +429,10 @@ const AddRoomModal = ({ show, onHide, onRoomAdded, rooms }) => {
 
           <Row>
             <Col md={6}>
-              <Form.Group className="mb-2">
-                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>Room Rent (₹) <span style={{ color: '#F87171' }}>*</span></Form.Label>
+              <Form.Group className="mb-3">
+                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600 }}>
+                  Room Rent (₹) <span style={{ color: '#F87171' }}>*</span>
+                </Form.Label>
                 <Form.Control
                   type="number"
                   name="room_rent"
@@ -431,29 +455,48 @@ const AddRoomModal = ({ show, onHide, onRoomAdded, rooms }) => {
               </Form.Group>
             </Col>
             <Col md={6}>
-              <Form.Group className="mb-2">
-                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>Move-in Date</Form.Label>
-                <Form.Control
-                  type="date"
-                  name="move_in_date"
-                  className="form-control"
-                  style={{
-                    background: 'var(--bg-glass)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '10px',
-                    padding: '10px 14px',
-                    color: 'var(--text-primary)',
-                    fontSize: '14px',
-                  }}
-                  value={formData.move_in_date}
-                  onChange={handleChange}
-                />
+              <Form.Group className="mb-3">
+                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600 }}>
+                  Move-in Date <span style={{ color: '#F87171' }}>*</span>
+                </Form.Label>
+                <div style={{ position: 'relative' }}>
+                  <Form.Control
+                    type="date"
+                    name="move_in_date"
+                    placeholder="dd/mm/yyyy"
+                    className="form-control"
+                    style={{
+                      background: 'var(--bg-glass)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '10px',
+                      padding: '10px 14px',
+                      color: 'var(--text-primary)',
+                      fontSize: '14px',
+                    }}
+                    value={formData.move_in_date}
+                    onChange={handleDateChange}
+                    required
+                  />
+                  <span style={{
+                    position: 'absolute',
+                    right: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    color: 'var(--text-muted)',
+                    fontSize: '18px',
+                    pointerEvents: 'none'
+                  }}>
+                    📅
+                  </span>
+                </div>
               </Form.Group>
             </Col>
           </Row>
 
-          <Form.Group className="mb-2">
-            <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>📍 Address</Form.Label>
+          <Form.Group className="mb-3">
+            <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600 }}>
+              📍 Address <span style={{ color: '#F87171' }}>*</span>
+            </Form.Label>
             <Form.Control
               as="textarea"
               rows={3}
@@ -471,13 +514,14 @@ const AddRoomModal = ({ show, onHide, onRoomAdded, rooms }) => {
               }}
               value={formData.address}
               onChange={handleChange}
+              required
             />
           </Form.Group>
 
           <Row>
             <Col md={6}>
-              <Form.Group className="mb-2">
-                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>
+              <Form.Group className="mb-3">
+                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600 }}>
                   Aadhar (Front) <span style={{ color: '#F87171' }}>*</span>
                 </Form.Label>
                 <div className="aadhar-upload-box" onClick={() => document.getElementById('aadhar_front').click()}>
@@ -485,7 +529,7 @@ const AddRoomModal = ({ show, onHide, onRoomAdded, rooms }) => {
                     <img src={formData.aadhar_front_preview} alt="Aadhar Front" />
                   ) : (
                     <div className="aadhar-upload-placeholder">
-                      <FiFileText size={20} />
+                      <FiFileText size={24} />
                       <span>Upload Front</span>
                     </div>
                   )}
@@ -495,13 +539,14 @@ const AddRoomModal = ({ show, onHide, onRoomAdded, rooms }) => {
                     accept="image/*"
                     onChange={(e) => handleFileChange(e, 'aadhar_front')}
                     style={{ display: 'none' }}
+                    required
                   />
                 </div>
               </Form.Group>
             </Col>
             <Col md={6}>
-              <Form.Group className="mb-2">
-                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>
+              <Form.Group className="mb-3">
+                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600 }}>
                   Aadhar (Back) <span style={{ color: '#F87171' }}>*</span>
                 </Form.Label>
                 <div className="aadhar-upload-box" onClick={() => document.getElementById('aadhar_back').click()}>
@@ -509,7 +554,7 @@ const AddRoomModal = ({ show, onHide, onRoomAdded, rooms }) => {
                     <img src={formData.aadhar_back_preview} alt="Aadhar Back" />
                   ) : (
                     <div className="aadhar-upload-placeholder">
-                      <FiFileText size={20} />
+                      <FiFileText size={24} />
                       <span>Upload Back</span>
                     </div>
                   )}
@@ -519,28 +564,58 @@ const AddRoomModal = ({ show, onHide, onRoomAdded, rooms }) => {
                     accept="image/*"
                     onChange={(e) => handleFileChange(e, 'aadhar_back')}
                     style={{ display: 'none' }}
+                    required
                   />
                 </div>
               </Form.Group>
             </Col>
           </Row>
 
-          <Form.Group className="mb-2">
+          <Form.Group className="mb-3">
             <Form.Check
               type="checkbox"
               name="is_active"
               label="Room is active"
               checked={formData.is_active}
               onChange={handleChange}
-              style={{ color: 'var(--text-secondary)', fontSize: '12px' }}
+              style={{ color: 'var(--text-secondary)', fontSize: '13px' }}
             />
           </Form.Group>
 
-          <div className="d-flex gap-2 mt-2">
-            <Button type="submit" className="btn-primary-gradient" disabled={loading} style={{ flex: 1, fontSize: '14px', padding: '10px' }}>
+          <div className="d-flex gap-3 mt-3">
+            <Button 
+              type="submit" 
+              className="btn-primary-gradient" 
+              disabled={loading} 
+              style={{ flex: 1, fontSize: '14px', padding: '10px', textAlign: 'center', justifyContent: 'center' }}
+            >
               {loading ? 'Adding...' : 'Add Room & Tenant'}
             </Button>
-            <Button variant="secondary" className="btn-ghost" onClick={onHide} style={{ fontSize: '14px', padding: '10px 20px' }}>Cancel</Button>
+            <Button 
+              variant="secondary" 
+              className="btn-ghost" 
+              onClick={() => {
+                setFormData({
+                  room_number: '',
+                  tenant_name: '',
+                  tenant_mobile: '',
+                  tenant_email: '',
+                  room_rent: '',
+                  move_in_date: '',
+                  address: '',
+                  aadhar_front: null,
+                  aadhar_back: null,
+                  aadhar_front_preview: null,
+                  aadhar_back_preview: null,
+                  is_active: true,
+                });
+                setError(null);
+                onHide();
+              }} 
+              style={{ flex: 1, fontSize: '14px', padding: '10px', textAlign: 'center', justifyContent: 'center' }}
+            >
+              Cancel
+            </Button>
           </div>
         </Form>
       </Modal.Body>
@@ -614,6 +689,11 @@ const EditRoomModal = ({ show, onHide, onRoomUpdated, room, rooms }) => {
     }
   };
 
+  const handleDateChange = (e) => {
+    const value = e.target.value;
+    setFormData({ ...formData, move_in_date: value });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -682,18 +762,20 @@ const EditRoomModal = ({ show, onHide, onRoomUpdated, room, rooms }) => {
 
   return (
     <Modal show={show} onHide={onHide} size="lg" centered>
-      <Modal.Header style={{ borderBottom: '1px solid var(--border-color)', padding: '12px 18px' }}>
-        <Modal.Title style={{ color: 'var(--text-primary)', fontSize: '16px', fontWeight: 700 }}>
+      <Modal.Header style={{ borderBottom: '1px solid var(--border-color)', padding: '14px 20px' }}>
+        <Modal.Title style={{ color: 'var(--text-primary)', fontSize: '18px', fontWeight: 700 }}>
           ✏️ Edit Room & Tenant
         </Modal.Title>
       </Modal.Header>
-      <Modal.Body style={{ background: 'var(--bg-primary)', padding: '14px 18px', maxHeight: '70vh', overflow: 'auto' }}>
+      <Modal.Body style={{ background: 'var(--bg-primary)', padding: '20px 24px', maxHeight: '70vh', overflow: 'auto' }}>
         {error && <CustomAlert type="error" message={error} onClose={() => setError(null)} />}
         <Form onSubmit={handleSubmit}>
           <Row>
             <Col md={6}>
-              <Form.Group className="mb-2">
-                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>Room Number <span style={{ color: '#F87171' }}>*</span></Form.Label>
+              <Form.Group className="mb-3">
+                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600 }}>
+                  Room Number <span style={{ color: '#F87171' }}>*</span>
+                </Form.Label>
                 <Form.Control
                   type="number"
                   name="room_number"
@@ -715,8 +797,10 @@ const EditRoomModal = ({ show, onHide, onRoomUpdated, room, rooms }) => {
               </Form.Group>
             </Col>
             <Col md={6}>
-              <Form.Group className="mb-2">
-                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>Tenant Name</Form.Label>
+              <Form.Group className="mb-3">
+                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600 }}>
+                  Tenant Name
+                </Form.Label>
                 <Form.Control
                   type="text"
                   name="tenant_name"
@@ -739,8 +823,10 @@ const EditRoomModal = ({ show, onHide, onRoomUpdated, room, rooms }) => {
 
           <Row>
             <Col md={6}>
-              <Form.Group className="mb-2">
-                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>Mobile Number</Form.Label>
+              <Form.Group className="mb-3">
+                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600 }}>
+                  Mobile Number
+                </Form.Label>
                 <Form.Control
                   type="tel"
                   name="tenant_mobile"
@@ -761,12 +847,14 @@ const EditRoomModal = ({ show, onHide, onRoomUpdated, room, rooms }) => {
                   }}
                   maxLength="10"
                 />
-                <small style={{ color: 'var(--text-muted)', fontSize: '10px' }}>Enter 10-digit mobile number (only numbers)</small>
+                <small style={{ color: 'var(--text-muted)', fontSize: '11px' }}>Enter 10-digit mobile number (only numbers)</small>
               </Form.Group>
             </Col>
             <Col md={6}>
-              <Form.Group className="mb-2">
-                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>Email</Form.Label>
+              <Form.Group className="mb-3">
+                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600 }}>
+                  Email
+                </Form.Label>
                 <Form.Control
                   type="email"
                   name="tenant_email"
@@ -789,8 +877,10 @@ const EditRoomModal = ({ show, onHide, onRoomUpdated, room, rooms }) => {
 
           <Row>
             <Col md={6}>
-              <Form.Group className="mb-2">
-                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>Room Rent (₹) <span style={{ color: '#F87171' }}>*</span></Form.Label>
+              <Form.Group className="mb-3">
+                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600 }}>
+                  Room Rent (₹) <span style={{ color: '#F87171' }}>*</span>
+                </Form.Label>
                 <Form.Control
                   type="number"
                   name="room_rent"
@@ -813,29 +903,46 @@ const EditRoomModal = ({ show, onHide, onRoomUpdated, room, rooms }) => {
               </Form.Group>
             </Col>
             <Col md={6}>
-              <Form.Group className="mb-2">
-                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>Move-in Date</Form.Label>
-                <Form.Control
-                  type="date"
-                  name="move_in_date"
-                  className="form-control"
-                  style={{
-                    background: 'var(--bg-glass)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '10px',
-                    padding: '10px 14px',
-                    color: 'var(--text-primary)',
-                    fontSize: '14px',
-                  }}
-                  value={formData.move_in_date}
-                  onChange={handleChange}
-                />
+              <Form.Group className="mb-3">
+                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600 }}>
+                  Move-in Date
+                </Form.Label>
+                <div style={{ position: 'relative' }}>
+                  <Form.Control
+                    type="date"
+                    name="move_in_date"
+                    className="form-control"
+                    style={{
+                      background: 'var(--bg-glass)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '10px',
+                      padding: '10px 14px',
+                      color: 'var(--text-primary)',
+                      fontSize: '14px',
+                    }}
+                    value={formData.move_in_date}
+                    onChange={handleDateChange}
+                  />
+                  <span style={{
+                    position: 'absolute',
+                    right: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    color: 'var(--text-muted)',
+                    fontSize: '18px',
+                    pointerEvents: 'none'
+                  }}>
+                    📅
+                  </span>
+                </div>
               </Form.Group>
             </Col>
           </Row>
 
-          <Form.Group className="mb-2">
-            <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>📍 Address</Form.Label>
+          <Form.Group className="mb-3">
+            <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600 }}>
+              📍 Address
+            </Form.Label>
             <Form.Control
               as="textarea"
               rows={3}
@@ -858,38 +965,85 @@ const EditRoomModal = ({ show, onHide, onRoomUpdated, room, rooms }) => {
 
           <Row>
             <Col md={6}>
-              <Form.Group className="mb-2">
-                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>
+              <Form.Group className="mb-3">
+                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600 }}>
                   Aadhar (Front) <span style={{ color: '#F87171' }}>*</span>
                 </Form.Label>
                 <div className="aadhar-upload-box" onClick={() => document.getElementById('aadhar_front').click()}>
-                  {formData.aadhar_front_preview ? <img src={formData.aadhar_front_preview} alt="Aadhar Front" /> : <div className="aadhar-upload-placeholder"><FiFileText size={20} /><span>Upload Front</span></div>}
+                  {formData.aadhar_front_preview ? (
+                    <img src={formData.aadhar_front_preview} alt="Aadhar Front" />
+                  ) : (
+                    <div className="aadhar-upload-placeholder">
+                      <FiFileText size={24} />
+                      <span>Upload Front</span>
+                    </div>
+                  )}
                   <input type="file" id="aadhar_front" accept="image/*" onChange={(e) => handleFileChange(e, 'aadhar_front')} style={{ display: 'none' }} />
                 </div>
               </Form.Group>
             </Col>
             <Col md={6}>
-              <Form.Group className="mb-2">
-                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>
+              <Form.Group className="mb-3">
+                <Form.Label style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600 }}>
                   Aadhar (Back) <span style={{ color: '#F87171' }}>*</span>
                 </Form.Label>
                 <div className="aadhar-upload-box" onClick={() => document.getElementById('aadhar_back').click()}>
-                  {formData.aadhar_back_preview ? <img src={formData.aadhar_back_preview} alt="Aadhar Back" /> : <div className="aadhar-upload-placeholder"><FiFileText size={20} /><span>Upload Back</span></div>}
+                  {formData.aadhar_back_preview ? (
+                    <img src={formData.aadhar_back_preview} alt="Aadhar Back" />
+                  ) : (
+                    <div className="aadhar-upload-placeholder">
+                      <FiFileText size={24} />
+                      <span>Upload Back</span>
+                    </div>
+                  )}
                   <input type="file" id="aadhar_back" accept="image/*" onChange={(e) => handleFileChange(e, 'aadhar_back')} style={{ display: 'none' }} />
                 </div>
               </Form.Group>
             </Col>
           </Row>
 
-          <Form.Group className="mb-2">
-            <Form.Check type="checkbox" name="is_active" label="Room is active" checked={formData.is_active} onChange={handleChange} style={{ color: 'var(--text-secondary)', fontSize: '12px' }} />
+          <Form.Group className="mb-3">
+            <Form.Check type="checkbox" name="is_active" label="Room is active" checked={formData.is_active} onChange={handleChange} style={{ color: 'var(--text-secondary)', fontSize: '13px' }} />
           </Form.Group>
 
-          <div className="d-flex gap-2 mt-2">
-            <Button type="submit" className="btn-primary-gradient" disabled={loading} style={{ flex: 1, fontSize: '14px', padding: '10px' }}>
+          <div className="d-flex gap-3 mt-3">
+            <Button 
+              type="submit" 
+              className="btn-primary-gradient" 
+              disabled={loading} 
+              style={{ flex: 1, fontSize: '14px', padding: '10px', textAlign: 'center', justifyContent: 'center' }}
+            >
               {loading ? 'Updating...' : 'Update Room & Tenant'}
             </Button>
-            <Button variant="secondary" className="btn-ghost" onClick={onHide} style={{ fontSize: '14px', padding: '10px 20px' }}>Cancel</Button>
+            <Button 
+              variant="secondary" 
+              className="btn-ghost" 
+              onClick={() => {
+                if (room) {
+                  const savedAadhar = JSON.parse(localStorage.getItem('room_aadhar_data') || '{}');
+                  const aadharData = savedAadhar[room.id] || {};
+                  setFormData({
+                    room_number: room.room_number || '',
+                    tenant_name: room.tenant_name || '',
+                    tenant_mobile: room.tenant_mobile || '',
+                    tenant_email: room.tenant_email || '',
+                    room_rent: room.room_rent || '',
+                    move_in_date: room.move_in_date || '',
+                    address: room.address || '',
+                    aadhar_front: null,
+                    aadhar_back: null,
+                    aadhar_front_preview: aadharData.aadhar_front || null,
+                    aadhar_back_preview: aadharData.aadhar_back || null,
+                    is_active: room.is_active !== undefined ? room.is_active : true,
+                  });
+                }
+                setError(null);
+                onHide();
+              }} 
+              style={{ flex: 1, fontSize: '14px', padding: '10px', textAlign: 'center', justifyContent: 'center' }}
+            >
+              Cancel
+            </Button>
           </div>
         </Form>
       </Modal.Body>
@@ -1131,7 +1285,6 @@ const Rooms = () => {
     <div className="fade-in-up">
       {alert && <CustomAlert type={alert.type} message={alert.message} onClose={handleAlertClose} />}
 
-      {/* Stats Cards */}
       <Row className="g-3 mb-4">
         {stats.map((stat, index) => (
           <Col md={3} sm={6} xs={6} key={index}>
@@ -1150,7 +1303,6 @@ const Rooms = () => {
         ))}
       </Row>
 
-      {/* 🔥 Search + Filter + Add Button in One Row */}
       <div className="search-filter-bar">
         <div className="search-box">
           <FiSearch className="search-icon" />
@@ -1169,17 +1321,14 @@ const Rooms = () => {
             <option value="vacant">Vacant</option>
           </select>
         </div>
-        <div className="room-count">{filteredRooms.length} rooms found</div>
-        {/* 🔥 Add Button in Search Row - Right Side */}
         <button 
           className="btn-primary-gradient add-btn-small" 
           onClick={() => setShowAddModal(true)}
         >
-          <FiPlus size={14} /> Add Room & Tenant
+          <FiPlus size={26} /> Add Room & Tenant
         </button>
       </div>
 
-      {/* Table */}
       <div className="table-wrap">
         {filteredRooms.length === 0 ? (
           <div className="empty-state">
@@ -1188,42 +1337,50 @@ const Rooms = () => {
             <div className="empty-sub">Try changing your search or filter.</div>
           </div>
         ) : (
-          <table className="table-premium">
-            <thead>
-              <tr>
-                <th className="col-sno">#</th>
-                <th className="col-room" onClick={() => handleSort('room_number')}>Room No {sortField === 'room_number' && (sortOrder === 'asc' ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />)}</th>
-                <th className="col-tenant" onClick={() => handleSort('tenant_name')}>Tenant Name {sortField === 'tenant_name' && (sortOrder === 'asc' ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />)}</th>
-                <th className="col-mobile">Mobile</th>
-                <th className="col-rent" onClick={() => handleSort('room_rent')}>Rent (₹) {sortField === 'room_rent' && (sortOrder === 'asc' ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />)}</th>
-                <th className="col-status">Status</th>
-                <th className="col-actions">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentRooms.map((room, index) => (
-                <tr key={room.id || index}>
-                  <td className="col-sno">{startIndex + index + 1}</td>
-                  <td className="col-room"><strong>Room {room.room_number}</strong></td>
-                  <td className="col-tenant">{room.tenant_name || '—'}</td>
-                  <td className="col-mobile">{room.tenant_mobile || '—'}</td>
-                  <td className="col-rent">₹{room.room_rent}</td>
-                  <td className="col-status">
-                    <span className={`badge-status ${room.tenant_name && room.tenant_name !== 'N/A' && room.is_active ? 'occupied' : 'vacant'}`}>
-                      {room.tenant_name && room.tenant_name !== 'N/A' && room.is_active ? '✅ Occupied' : '⏳ Vacant'}
-                    </span>
-                  </td>
-                  <td className="col-actions">
-                    <div className="table-actions">
-                      <button className="action-btn status-btn" title="Update Status" onClick={() => handleStatusUpdate(room)}><FiRefreshCw size={14} /></button>
-                      <button className="action-btn edit-btn" title="Edit" onClick={() => handleEdit(room)}><FiEdit size={14} /></button>
-                      <button className="action-btn delete-btn" title="Delete" onClick={() => handleDeleteClick(room)}><FiTrash2 size={14} /></button>
-                    </div>
-                  </td>
+          <div className="table-scroll-container">
+            <table className="table-premium">
+              <thead>
+                <tr>
+                  <th className="col-sno">#</th>
+                  <th className="col-room">Room No</th>
+                  <th className="col-tenant">Tenant Name</th>
+                  <th className="col-mobile">Mobile</th>
+                  <th className="col-rent">Rent (₹)</th>
+                  <th className="col-status">Status</th>
+                  <th className="col-actions">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {currentRooms.map((room, index) => (
+                  <tr key={room.id || index}>
+                    <td className="col-sno">{startIndex + index + 1}</td>
+                    <td className="col-room"><strong>Room {room.room_number}</strong></td>
+                    <td className="col-tenant">{room.tenant_name || '—'}</td>
+                    <td className="col-mobile">{room.tenant_mobile || '—'}</td>
+                    <td className="col-rent">₹{room.room_rent}</td>
+                    <td className="col-status">
+                      <span className={`badge-status ${room.tenant_name && room.tenant_name !== 'N/A' && room.is_active ? 'occupied' : 'vacant'}`}>
+                        {room.tenant_name && room.tenant_name !== 'N/A' && room.is_active ? '✅ Occupied' : '⏳ Vacant'}
+                      </span>
+                    </td>
+                    <td className="col-actions">
+                      <div className="table-actions">
+                        <button className="action-btn status-btn" title="Update Status" onClick={() => handleStatusUpdate(room)}>
+                          <FiRefreshCw size={14} />
+                        </button>
+                        <button className="action-btn edit-btn" title="Edit" onClick={() => handleEdit(room)}>
+                          <FiEdit size={14} />
+                        </button>
+                        <button className="action-btn delete-btn" title="Delete" onClick={() => handleDeleteClick(room)}>
+                          <FiTrash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 

@@ -876,7 +876,7 @@ const Bills = () => {
                   onClick={() => handleCalculate(selectedBill.id)}
                   title="Calculate - This will save tenant name snapshots"
                 >
-                  <FiRefreshCw size={14} /> Calculate & Save Snapshots
+                  <FiRefreshCw size={14} /> Calculate & Save
                 </button>
                 <button 
                   className="btn-ghost btn-sm delete-btn-sm" 

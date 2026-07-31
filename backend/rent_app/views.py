@@ -57,7 +57,10 @@ class RoomViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def perform_update(self, serializer):
+        """Override update to save tenant history and handle room deletion"""
         instance = self.get_object()
+        
+        # Save old tenant details BEFORE update
         old_tenant_name = instance.tenant_name
         old_tenant_mobile = instance.tenant_mobile
         old_tenant_email = instance.tenant_email
@@ -65,11 +68,15 @@ class RoomViewSet(viewsets.ModelViewSet):
         old_address = instance.address
         old_move_in_date = instance.move_in_date
         
+        # Save the updated instance
         updated_instance = serializer.save()
+        
+        # Check if room became vacant (tenant removed)
         new_tenant_name = updated_instance.tenant_name
         new_is_deleted = updated_instance.is_deleted
         
         if old_tenant_name and not new_tenant_name:
+            # Room became vacant - save tenant history with ALL details
             history = TenantHistory.objects.create(
                 room=updated_instance,
                 tenant_name=old_tenant_name,
@@ -81,22 +88,42 @@ class RoomViewSet(viewsets.ModelViewSet):
                 move_out_date=date.today(),
                 aadhar_data={}
             )
+            
+            # Update total paid and bills
             tenant_readings = RoomMeterReading.objects.filter(
                 room=updated_instance,
                 tenant_name_snapshot=old_tenant_name
             )
+            
             total_paid = PaymentHistory.objects.filter(
                 room_reading__in=tenant_readings
             ).aggregate(total=Sum('amount'))['total'] or 0
+            
             total_bills = tenant_readings.aggregate(
                 total=Sum('total_amount')
             )['total'] or 0
+            
             history.total_paid = total_paid
             history.total_bills = total_bills
             history.save()
+            
+            # 🔥 FIX: Keep ALL old details in room for display
+            # Don't clear anything when room becomes vacant
+            updated_instance.tenant_name = old_tenant_name
+            updated_instance.tenant_mobile = old_tenant_mobile
+            updated_instance.tenant_email = old_tenant_email
+            updated_instance.room_rent = old_room_rent
+            updated_instance.address = old_address
+            updated_instance.move_in_date = old_move_in_date
+            updated_instance.is_active = False  # Only mark as inactive
+            
             if new_is_deleted:
-                updated_instance.is_active = False
-                updated_instance.save()
+                updated_instance.is_deleted = True
+            else:
+                updated_instance.is_deleted = False
+            
+            updated_instance.save()
+        
         if new_is_deleted and updated_instance.tenant_name:
             updated_instance.is_deleted = False
             updated_instance.save()
@@ -109,50 +136,65 @@ class MonthlyBillViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def calculate_readings(self, request, pk=None):
+        """Calculate all room readings for a bill and save tenant snapshots"""
         bill = self.get_object()
         readings = RoomMeterReading.objects.filter(monthly_bill=bill)
+        
         if not readings.exists():
             return Response(
                 {'error': 'No readings found for this bill'}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
         total_units = readings.aggregate(Sum('units_consumed'))['units_consumed__sum'] or Decimal('0.00')
+        
         if total_units == 0:
             return Response(
                 {'error': 'Total units cannot be zero'}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
         per_unit_rate = bill.per_unit_rate
+        
         for reading in readings:
             reading.electricity_charge = reading.units_consumed * per_unit_rate
             reading.total_amount = reading.room.room_rent + reading.electricity_charge
+            
+            # 🔥 Save snapshot with mobile number
             if reading.room.tenant_name and reading.room.tenant_name.strip():
                 reading.tenant_name_snapshot = reading.room.tenant_name
                 reading.tenant_mobile_snapshot = reading.room.tenant_mobile or ''
             else:
+                # Try previous month snapshot
                 previous_reading = RoomMeterReading.objects.filter(
                     room=reading.room,
                     monthly_bill__month__lt=bill.month
                 ).exclude(
                     Q(tenant_name_snapshot='') | Q(tenant_name_snapshot__isnull=True)
                 ).order_by('-monthly_bill__month').first()
+                
                 if previous_reading and previous_reading.tenant_name_snapshot:
                     reading.tenant_name_snapshot = previous_reading.tenant_name_snapshot
                     reading.tenant_mobile_snapshot = previous_reading.tenant_mobile_snapshot or ''
                 else:
+                    # Try PaymentHistory as last resort
                     last_payment = PaymentHistory.objects.filter(
                         room_reading__room=reading.room
                     ).order_by('-payment_date').first()
+                    
                     if last_payment and last_payment.room_reading.tenant_name_snapshot:
                         reading.tenant_name_snapshot = last_payment.room_reading.tenant_name_snapshot
                         reading.tenant_mobile_snapshot = last_payment.room_reading.tenant_mobile_snapshot or ''
                     else:
                         reading.tenant_name_snapshot = ''
                         reading.tenant_mobile_snapshot = ''
+            
             reading.save()
+        
         bill.total_units = total_units
         bill.total_bill_amount = readings.aggregate(Sum('total_amount'))['total_amount__sum'] or Decimal('0.00')
         bill.save()
+        
         serializer = RoomMeterReadingSerializer(readings, many=True)
         return Response({
             'message': 'Calculations completed',
@@ -173,27 +215,34 @@ class RoomMeterReadingViewSet(viewsets.ModelViewSet):
         reading = self.get_object()
         payment_mode = request.data.get('payment_mode', 'CASH')
         amount = Decimal(str(request.data.get('amount', 0)))
+        
         if amount <= 0:
             return Response(
                 {'error': 'Amount must be greater than 0'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
         total_amount = reading.total_amount
         already_paid = reading.paid_amount or Decimal('0.00')
         remaining = total_amount - already_paid
+        
         if amount > remaining:
             return Response(
                 {'error': f'Amount cannot exceed remaining balance of ₹{remaining}'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
         reading.paid_amount = already_paid + amount
         reading.payment_mode = payment_mode
+        
         if reading.paid_amount >= total_amount:
             reading.is_paid = True
             reading.paid_date = timezone.now()
         else:
             reading.is_paid = False
+        
         reading.save()
+        
         payment = PaymentHistory.objects.create(
             room_reading=reading,
             amount=amount,
@@ -203,6 +252,7 @@ class RoomMeterReadingViewSet(viewsets.ModelViewSet):
             created_by=request.user,
             is_partial=amount < remaining
         )
+        
         serializer = PaymentHistorySerializer(payment)
         return Response({
             'message': 'Payment recorded successfully',
@@ -370,7 +420,7 @@ class DashboardViewSet(viewsets.ViewSet):
                 total=Sum('room_rent')
             )['total'] or 0
             
-            # 🔥 Current month stats
+            # Current month stats
             current_month_paid = readings.aggregate(
                 total=Sum('paid_amount')
             )['total'] or 0
@@ -381,7 +431,7 @@ class DashboardViewSet(viewsets.ViewSet):
             
             current_month_pending = current_month_total - current_month_paid
             
-            # 🔥 Overall stats (all time)
+            # Overall stats (all time)
             overall_paid = PaymentHistory.objects.aggregate(
                 total=Sum('amount')
             )['total'] or 0
@@ -392,15 +442,17 @@ class DashboardViewSet(viewsets.ViewSet):
             
             overall_pending = overall_total - overall_paid
             
-            # Get room-wise data
+            # Get room-wise data with mobile from snapshot
             room_data = []
             for reading in readings:
                 room = reading.room
                 tenant_name = reading.tenant_name_snapshot or room.tenant_name or '—'
+                # 🔥 Get mobile from snapshot or room
+                tenant_mobile = reading.tenant_mobile_snapshot or room.tenant_mobile or '—'
                 room_data.append({
                     'room_number': room.room_number,
                     'tenant_name': tenant_name,
-                    'tenant_mobile': room.tenant_mobile or '—',
+                    'tenant_mobile': tenant_mobile,
                     'units_consumed': float(reading.units_consumed),
                     'room_rent': float(room.room_rent),
                     'electricity_charge': float(reading.electricity_charge),
@@ -444,11 +496,9 @@ class DashboardViewSet(viewsets.ViewSet):
             return Response({
                 'total_rooms': total_rooms,
                 'total_monthly_rent': float(total_rent),
-                # 🔥 Current month stats
                 'current_month_total': float(current_month_total),
                 'current_month_paid': float(current_month_paid),
                 'current_month_pending': float(current_month_pending),
-                # 🔥 Overall stats
                 'overall_total': float(overall_total),
                 'overall_paid': float(overall_paid),
                 'overall_pending': float(overall_pending),

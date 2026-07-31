@@ -8,8 +8,7 @@ import {
   FiBell, 
   FiGlobe,
   FiHome,
-  FiLogOut,
-  FiUser
+  FiLogOut
 } from 'react-icons/fi';
 import './Navbar.css';
 
@@ -18,7 +17,7 @@ const NavigationBar = ({ toggleSidebar }) => {
   const [theme, setTheme] = useState('dark');
   const [language, setLanguage] = useState('en');
   const [showDropdown, setShowDropdown] = useState(false);
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
   // Get page title based on current path
@@ -85,23 +84,6 @@ const NavigationBar = ({ toggleSidebar }) => {
           <FiBell size={20} />
           <span className="notification-dot" />
         </button>
-
-        <div className="navbar-user" onClick={() => setShowDropdown(!showDropdown)}>
-          <div className="user-avatar">
-            <FiUser size={16} />
-          </div>
-          <span className="user-name">Admin</span>
-          <span className={`dropdown-arrow ${showDropdown ? 'open' : ''}`}>▼</span>
-        </div>
-
-        {showDropdown && (
-          <div className="dropdown-menu">
-            <div className="dropdown-item" onClick={handleLogout}>
-              <FiLogOut size={16} />
-              <span>Logout</span>
-            </div>
-          </div>
-        )}
       </div>
     </nav>
   );

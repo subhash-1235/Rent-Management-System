@@ -19,10 +19,8 @@ const History = () => {
 
   useEffect(() => {
     if (payments.length > 0) {
-      // 🔥 Extract unique months from bill_month_key (not payment date)
       const months = new Set();
       payments.forEach(p => {
-        // Use bill_month_key from serializer
         const monthKey = p.bill_month_key;
         if (monthKey) {
           months.add(monthKey);
@@ -59,14 +57,12 @@ const History = () => {
   const applyFilters = () => {
     let filtered = [...payments];
 
-    // 🔥 Filter by bill month (not payment date)
     if (selectedMonth) {
       filtered = filtered.filter(payment => {
         return payment.bill_month_key === selectedMonth;
       });
     }
 
-    // Filter by search term
     if (searchTerm) {
       const term = searchTerm.toLowerCase().trim();
       filtered = filtered.filter(payment => {
@@ -136,16 +132,16 @@ const History = () => {
       return;
     }
 
-    const headers = ['#', 'Tenant', 'Room', 'Amount', 'Payment Mode', 'Payment Date', 'Bill Month'];
+    const headers = ['#', 'Room', 'Tenant', 'Amount', 'Payment Mode', 'Payment Date', 'Status'];
     const rows = filteredPayments.map((payment, index) => {
       return [
         index + 1,
-        getTenantName(payment),
         `Room ${getRoomNumber(payment)}`,
+        getTenantName(payment),
         payment.amount || 0,
         payment.payment_mode || '—',
         payment.payment_date ? new Date(payment.payment_date).toLocaleDateString() : '—',
-        payment.bill_month || '—'
+        'Completed'
       ];
     });
 
@@ -165,7 +161,7 @@ const History = () => {
   if (loading) {
     return (
       <div className="text-center mt-5">
-        <div className="spinner-border text-primary" role="status" />
+        <Spinner animation="border" variant="primary" />
         <p className="mt-2 text-muted">Loading history...</p>
       </div>
     );
@@ -269,7 +265,6 @@ const History = () => {
             onChange={(e) => setSearchTerm(e.target.value)} 
           />
         </div>
-        <div className="room-count">{filteredPayments.length} payments found</div>
       </div>
 
       <div className="table-wrap">
@@ -282,55 +277,57 @@ const History = () => {
             </div>
           </div>
         ) : (
-          <table className="table-premium">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Tenant</th>
-                <th>Room</th>
-                <th>Amount (₹)</th>
-                <th>Payment Mode</th>
-                <th>Payment Date</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredPayments.map((payment, index) => {
-                const tenantName = getTenantName(payment);
-                const roomNumber = getRoomNumber(payment);
-                const amount = parseFloat(payment.amount) || 0;
-                const paymentMode = payment.payment_mode || '—';
-                const paymentDate = payment.payment_date ? new Date(payment.payment_date) : null;
-                const dateStr = paymentDate ? paymentDate.toLocaleDateString('en-IN', { 
-                  day: '2-digit', 
-                  month: 'short', 
-                  year: 'numeric' 
-                }) : '—';
+          <div className="table-scroll-container">
+            <table className="table-premium history-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Room</th>
+                  <th>Tenant</th>
+                  <th>Amount (₹)</th>
+                  <th>Payment Mode</th>
+                  <th>Payment Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredPayments.map((payment, index) => {
+                  const tenantName = getTenantName(payment);
+                  const roomNumber = getRoomNumber(payment);
+                  const amount = parseFloat(payment.amount) || 0;
+                  const paymentMode = payment.payment_mode || '—';
+                  const paymentDate = payment.payment_date ? new Date(payment.payment_date) : null;
+                  const dateStr = paymentDate ? paymentDate.toLocaleDateString('en-IN', { 
+                    day: '2-digit', 
+                    month: 'short', 
+                    year: 'numeric' 
+                  }) : '—';
 
-                return (
-                  <tr key={payment.id || index}>
-                    <td>{index + 1}</td>
-                    <td>{tenantName}</td>
-                    <td><strong>Room {roomNumber}</strong></td>
-                    <td>
-                      <strong style={{ color: '#34D399' }}>
-                        ₹{amount.toFixed(2)}
-                      </strong>
-                    </td>
-                    <td>
-                      <span className="badge-status paid">
-                        {paymentMode}
-                      </span>
-                    </td>
-                    <td>{dateStr}</td>
-                    <td>
-                      <span className="badge-status paid">✅ Completed</span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                  return (
+                    <tr key={payment.id || index}>
+                      <td>{index + 1}</td>
+                      <td><strong>Room {roomNumber}</strong></td>
+                      <td>{tenantName}</td>
+                      <td>
+                        <strong style={{ color: '#34D399' }}>
+                          ₹{amount.toFixed(2)}
+                        </strong>
+                      </td>
+                      <td>
+                        <span className="badge-status paid">
+                          {paymentMode}
+                        </span>
+                      </td>
+                      <td>{dateStr}</td>
+                      <td>
+                        <span className="badge-status paid">✅ Completed</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 

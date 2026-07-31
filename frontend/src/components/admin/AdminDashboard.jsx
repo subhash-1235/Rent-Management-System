@@ -9,7 +9,6 @@ import {
   FiPlus,
   FiUsers,
   FiFileText,
-  FiDownload,
   FiUser,
   FiCalendar,
   FiFilter,
@@ -83,7 +82,6 @@ const RoomTable = ({ rooms = [], month, onMonthChange, availableMonths = [], sea
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
   
-  // Filter rooms by search term
   const filteredRooms = rooms.filter(room => {
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase().trim();
@@ -112,6 +110,19 @@ const RoomTable = ({ rooms = [], month, onMonthChange, availableMonths = [], sea
       return { class: 'partial', label: '🔄 Partial' };
     }
     return { class: 'pending', label: '⏳ Pending' };
+  };
+
+  const getMobileNumber = (roomData) => {
+    if (roomData.tenant_mobile && roomData.tenant_mobile !== '—' && roomData.tenant_mobile !== '') {
+      return roomData.tenant_mobile;
+    }
+    if (roomData.room?.tenant_mobile) {
+      return roomData.room.tenant_mobile;
+    }
+    if (roomData.tenant_mobile_snapshot) {
+      return roomData.tenant_mobile_snapshot;
+    }
+    return '—';
   };
 
   return (
@@ -162,17 +173,19 @@ const RoomTable = ({ rooms = [], month, onMonthChange, availableMonths = [], sea
               </tr>
             ) : (
               currentRooms.map((room, index) => {
+                const roomData = room.room_details || room.room || room;
                 const total = parseFloat(room.total_amount || 0);
                 const paid = parseFloat(room.paid_amount || 0);
                 const remaining = total - paid;
                 const status = getStatusBadge(room.is_paid, total, paid);
+                const mobile = getMobileNumber(room);
                 
                 return (
                   <tr key={room.id || index}>
                     <td>{startIndex + index + 1}</td>
                     <td><strong>Room {room.room_number || '?'}</strong></td>
                     <td>{room.tenant_name || '—'}</td>
-                    <td>{room.tenant_mobile || '—'}</td>
+                    <td>{mobile}</td>
                     <td>{parseFloat(room.units_consumed || 0).toFixed(2)}</td>
                     <td>₹{parseFloat(room.room_rent || 0).toFixed(2)}</td>
                     <td>₹{parseFloat(room.electricity_charge || 0).toFixed(2)}</td>
@@ -224,7 +237,6 @@ const PendingDuesTable = ({ pendingDues = [], pendingSummary = {}, searchTerm = 
   const [expandedTenants, setExpandedTenants] = useState({});
   const [filterMonth, setFilterMonth] = useState('all');
 
-  // Filter dues by search term
   const filteredDues = pendingDues.filter(due => {
     const monthMatch = filterMonth === 'all' || due.month === filterMonth;
     const searchMatch = !searchTerm || 
@@ -349,7 +361,7 @@ const PendingDuesTable = ({ pendingDues = [], pendingSummary = {}, searchTerm = 
               <th>Room No</th>
               <th>Tenant</th>
               <th>Month</th>
-              <th>Total Bill</th>
+              <th>Total Rent</th>
               <th>Paid</th>
               <th>Pending</th>
               <th>Status</th>
@@ -456,6 +468,7 @@ const AdminDashboard = () => {
     fetchBills();
   }, []);
 
+  // 🔥 When month changes, fetch month data
   useEffect(() => {
     if (selectedMonth) {
       fetchMonthData(selectedMonth);
@@ -513,7 +526,9 @@ const AdminDashboard = () => {
       
       setPendingDues(statsData.pending_dues || []);
       setPendingSummary(statsData.pending_summary || {});
-      setRooms(statsData.room_data || []);
+      
+      // 🔥 FIX: Don't set rooms here - let fetchMonthData handle it
+      // setRooms(statsData.room_data || []);
       
       setError(null);
     } catch (err) {
@@ -526,8 +541,6 @@ const AdminDashboard = () => {
 
   const fetchMonthData = async (month) => {
     try {
-      setLoading(true);
-      
       const readingsRes = await readingAPI.getByMonth(month);
       const readings = readingsRes.data || [];
       
@@ -535,7 +548,7 @@ const AdminDashboard = () => {
         id: reading.id,
         room_number: reading.room_details?.room_number || reading.room || '?',
         tenant_name: reading.tenant_name_snapshot || reading.room_details?.tenant_name || '—',
-        tenant_mobile: reading.room_details?.tenant_mobile || '—',
+        tenant_mobile: reading.tenant_mobile_snapshot || reading.room_details?.tenant_mobile || '—',
         units_consumed: reading.units_consumed || 0,
         room_rent: reading.room_details?.room_rent || 0,
         electricity_charge: reading.electricity_charge || 0,
@@ -544,12 +557,12 @@ const AdminDashboard = () => {
         is_paid: reading.is_paid || false,
       }));
       
+      // 🔥 Only set rooms for the selected month
       setRooms(formattedRooms);
-      setError(null);
     } catch (err) {
       console.error('Error fetching month data:', err);
-    } finally {
-      setLoading(false);
+      // 🔥 If error, set empty rooms
+      setRooms([]);
     }
   };
 
@@ -561,35 +574,6 @@ const AdminDashboard = () => {
   const handleManageRooms = () => navigate('/rooms');
   const handleHistory = () => navigate('/history');
   const handleAllTenants = () => navigate('/all-tenants');
-  const handleExport = () => {
-    if (rooms.length === 0) {
-      alert('No data to export!');
-      return;
-    }
-    
-    const headers = ['Room', 'Tenant', 'Mobile', 'Units', 'Rent', 'Bill', 'Total', 'Paid', 'Remaining', 'Status'];
-    const rows = rooms.map((room) => [
-      `Room ${room.room_number || '?'}`,
-      room.tenant_name || '—',
-      room.tenant_mobile || '—',
-      parseFloat(room.units_consumed || 0).toFixed(2),
-      parseFloat(room.room_rent || 0).toFixed(2),
-      parseFloat(room.electricity_charge || 0).toFixed(2),
-      parseFloat(room.total_amount || 0).toFixed(2),
-      parseFloat(room.paid_amount || 0).toFixed(2),
-      parseFloat((room.total_amount || 0) - (room.paid_amount || 0)).toFixed(2),
-      room.is_paid ? 'Paid' : 'Pending'
-    ]);
-
-    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `dashboard_export_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
 
   if (loading) {
     return (
@@ -640,10 +624,6 @@ const AdminDashboard = () => {
         <button className="btn-ghost" onClick={handleHistory}>
           <FiFileText size={14} />
           History
-        </button>
-        <button className="btn-ghost" onClick={handleExport}>
-          <FiDownload size={14} />
-          Export
         </button>
       </div>
 

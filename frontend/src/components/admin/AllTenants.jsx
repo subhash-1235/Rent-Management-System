@@ -82,10 +82,10 @@ const ViewTenantDetailsModal = ({ show, onHide, tenant }) => {
     if (!dateStr) return '—';
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return '—';
-    return date.toLocaleDateString('en-IN', { 
-      day: '2-digit', 
-      month: 'short', 
-      year: 'numeric' 
+    return date.toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
     });
   };
 
@@ -182,8 +182,8 @@ const ViewTenantDetailsModal = ({ show, onHide, tenant }) => {
             <div className="tenant-detail-aadhar">
               <label>🪪 Aadhar Card</label>
               <div className="aadhar-images">
-                <div 
-                  className="aadhar-image-box clickable" 
+                <div
+                  className="aadhar-image-box clickable"
                   onClick={() => aadharData.aadhar_front && openFullImage(aadharData.aadhar_front)}
                   style={{ cursor: aadharData.aadhar_front ? 'pointer' : 'default' }}
                 >
@@ -196,8 +196,8 @@ const ViewTenantDetailsModal = ({ show, onHide, tenant }) => {
                     <div className="aadhar-click-hint">🔍 Click to view full</div>
                   )}
                 </div>
-                <div 
-                  className="aadhar-image-box clickable" 
+                <div
+                  className="aadhar-image-box clickable"
                   onClick={() => aadharData.aadhar_back && openFullImage(aadharData.aadhar_back)}
                   style={{ cursor: aadharData.aadhar_back ? 'pointer' : 'default' }}
                 >
@@ -222,12 +222,12 @@ const ViewTenantDetailsModal = ({ show, onHide, tenant }) => {
       {/* Full Image View Modal */}
       <Modal show={!!showFullImage} onHide={closeFullImage} centered size="lg">
         <Modal.Body style={{ padding: '0', background: 'rgba(0,0,0,0.92)', position: 'relative', minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <img 
-            src={showFullImage} 
-            alt="Aadhar Card Full View" 
+          <img
+            src={showFullImage}
+            alt="Aadhar Card Full View"
             style={{ width: '100%', height: 'auto', maxHeight: '90vh', objectFit: 'contain' }}
           />
-          <button 
+          <button
             onClick={closeFullImage}
             style={{
               position: 'absolute',
@@ -251,7 +251,7 @@ const ViewTenantDetailsModal = ({ show, onHide, tenant }) => {
           >
             ×
           </button>
-          <button 
+          <button
             onClick={closeFullImage}
             style={{
               position: 'absolute',
@@ -339,7 +339,7 @@ const EditTenantModal = ({ show, onHide, tenant, onTenantUpdated }) => {
         room_rent: parseFloat(formData.room_rent),
         address: formData.address || null,
       };
-      
+
       await roomAPI.update(tenant.room_id, data);
       onTenantUpdated();
       onHide();
@@ -523,15 +523,15 @@ const AllTenants = () => {
   const fetchAllTenants = async () => {
     try {
       setLoading(true);
-      
+
       const roomsResponse = await roomAPI.getAll();
       const allRooms = roomsResponse.data || [];
-      
+
       const historyResponse = await tenantHistoryAPI.getAllTenants();
       const historyData = historyResponse.data || [];
-      
+
       const tenantMap = {};
-      
+
       allRooms.forEach(room => {
         if (room.tenant_name && room.tenant_name.trim() !== '') {
           const key = `${room.tenant_name}_${room.room_number}`;
@@ -551,7 +551,7 @@ const AllTenants = () => {
           };
         }
       });
-      
+
       historyData.forEach(history => {
         const key = `${history.tenant_name}_${history.room_number}`;
         if (!tenantMap[key] || !tenantMap[key].is_active) {
@@ -571,7 +571,7 @@ const AllTenants = () => {
           };
         }
       });
-      
+
       setTenants(Object.values(tenantMap));
       setError(null);
     } catch (err) {
@@ -629,10 +629,10 @@ const AllTenants = () => {
     if (!dateStr) return '—';
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return '—';
-    return date.toLocaleDateString('en-IN', { 
-      day: '2-digit', 
-      month: 'short', 
-      year: 'numeric' 
+    return date.toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
     });
   };
 
@@ -671,9 +671,9 @@ const AllTenants = () => {
   return (
     <div className="fade-in-up">
       {alert && (
-        <CustomAlert 
-          type={alert.type} 
-          message={alert.message} 
+        <CustomAlert
+          type={alert.type}
+          message={alert.message}
           onClose={() => setAlert(null)}
         />
       )}
@@ -723,7 +723,6 @@ const AllTenants = () => {
             <option value="past">Past</option>
           </select>
         </div>
-        <div className="room-count">{filteredTenants.length} tenants found</div>
       </div>
 
       <div className="table-wrap">
@@ -734,65 +733,65 @@ const AllTenants = () => {
             <div className="empty-sub">Try changing your search or filter.</div>
           </div>
         ) : (
-          <table className="table-premium">
-            <thead>
-              <tr>
-                <th style={{ width: '40px' }}>#</th>
-                <th style={{ width: '90px' }}>Room</th>
-                <th style={{ width: '130px' }}>Tenant</th>
-                <th style={{ width: '120px' }}>Mobile</th>
-                <th style={{ width: '95px' }}>Status</th>
-                <th style={{ width: '120px' }}>Move In</th>
-                <th style={{ width: '120px' }}>Move Out</th>
-                <th style={{ width: '90px' }}>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentTenants.map((tenant, index) => {
-                const moveOutDisplay = tenant.is_active 
-                  ? '🟢 Ongoing'
-                  : formatDate(tenant.move_out_date);
-                
-                return (
-                  <tr key={index}>
-                    <td style={{ width: '40px' }}>{startIndex + index + 1}</td>
-                    <td style={{ width: '90px' }}><strong>Room {tenant.room_number}</strong></td>
-                    <td style={{ width: '130px' }}>{tenant.tenant_name}</td>
-                    <td style={{ width: '120px' }}>{tenant.tenant_mobile || '—'}</td>
-                    <td style={{ width: '95px' }}>
-                      <span className={`badge-status ${tenant.is_active ? 'occupied' : 'vacant'}`}>
-                        {tenant.is_active ? '✅ Active' : '⏳ Former'}
-                      </span>
-                    </td>
-                    <td style={{ width: '120px', fontSize: '13px', color: 'var(--text-primary)' }}>
-                      {formatDate(tenant.move_in_date)}
-                    </td>
-                    <td style={{ width: '120px', fontSize: '13px', color: tenant.is_active ? '#34D399' : 'var(--text-secondary)' }}>
-                      {moveOutDisplay}
-                    </td>
-                    <td style={{ width: '90px' }}>
-                      <div className="table-actions">
-                        <button 
-                          className="action-btn view-btn" 
-                          title="View Details"
-                          onClick={() => handleView(tenant)}
-                        >
-                          <FiEye size={14} />
-                        </button>
-                        <button 
-                          className="action-btn edit-btn" 
-                          title="Edit"
-                          onClick={() => handleEdit(tenant)}
-                        >
-                          <FiEdit size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <div className="table-scroll-container">
+            <table className="table-premium tenant-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Room</th>
+                  <th>Tenant</th>
+                  <th>Mobile</th>
+                  <th>Status</th>
+                  <th>Move In</th>
+                  <th>Move Out</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentTenants.map((tenant, index) => {
+                  const moveOutDisplay = tenant.is_active
+                    ? '🟢 Ongoing'
+                    : formatDate(tenant.move_out_date);
+
+                  return (
+                    <tr key={index}>
+                      <td>{startIndex + index + 1}</td>
+                      <td><strong>Room {tenant.room_number}</strong></td>
+                      <td>{tenant.tenant_name}</td>
+                      <td>{tenant.tenant_mobile || '—'}</td>
+                      <td>
+                        <span className={`badge-status ${tenant.is_active ? 'occupied' : 'vacant'}`}>
+                          {tenant.is_active ? '✅ Active' : '⏳ Former'}
+                        </span>
+                      </td>
+                      <td>{formatDate(tenant.move_in_date)}</td>
+                      <td style={{ color: tenant.is_active ? '#34D399' : 'var(--text-secondary)' }}>
+                        {moveOutDisplay}
+                      </td>
+                      <td>
+                        <div className="table-actions">
+                          <button
+                            className="action-btn view-btn"
+                            title="View Details"
+                            onClick={() => handleView(tenant)}
+                          >
+                            <FiEye size={14} />
+                          </button>
+                          <button
+                            className="action-btn edit-btn"
+                            title="Edit"
+                            onClick={() => handleEdit(tenant)}
+                          >
+                            <FiEdit size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
@@ -808,13 +807,13 @@ const AllTenants = () => {
         </div>
       )}
 
-      <ViewTenantDetailsModal 
+      <ViewTenantDetailsModal
         show={showViewModal}
         onHide={() => setShowViewModal(false)}
         tenant={selectedTenant}
       />
 
-      <EditTenantModal 
+      <EditTenantModal
         show={showEditModal}
         onHide={() => setShowEditModal(false)}
         tenant={selectedTenant}

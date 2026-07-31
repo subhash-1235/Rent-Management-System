@@ -433,21 +433,21 @@
 .table-premium th:nth-child(3),
 .table-premium td:nth-child(3) { width: 130px; min-width: 130px; max-width: 130px; }
 .table-premium th:nth-child(4),
-.table-premium td:nth-child(4) { width: 110px; min-width: 110px; max-width: 110px; }
+.table-premium td:nth-child(4) { width: 110px; min-width: 130px; max-width: 110px; }
 .table-premium th:nth-child(5),
-.table-premium td:nth-child(5) { width: 60px; min-width: 60px; max-width: 60px; }
+.table-premium td:nth-child(5) { width: 60px; min-width: 100px; max-width: 60px; }
 .table-premium th:nth-child(6),
-.table-premium td:nth-child(6) { width: 80px; min-width: 80px; max-width: 80px; }
+.table-premium td:nth-child(6) { width: 80px; min-width: 120px; max-width: 80px; }
 .table-premium th:nth-child(7),
-.table-premium td:nth-child(7) { width: 80px; min-width: 80px; max-width: 80px; }
+.table-premium td:nth-child(7) { width: 80px; min-width: 140px; max-width: 80px; }
 .table-premium th:nth-child(8),
-.table-premium td:nth-child(8) { width: 90px; min-width: 90px; max-width: 90px; }
+.table-premium td:nth-child(8) { width: 90px; min-width: 140px; max-width: 90px; }
 .table-premium th:nth-child(9),
-.table-premium td:nth-child(9) { width: 90px; min-width: 90px; max-width: 90px; }
+.table-premium td:nth-child(9) { width: 90px; min-width: 120px; max-width: 90px; }
 .table-premium th:nth-child(10),
-.table-premium td:nth-child(10) { width: 100px; min-width: 100px; max-width: 100px; }
+.table-premium td:nth-child(10) { width: 100px; min-width: 120px; max-width: 100px; }
 .table-premium th:nth-child(11),
-.table-premium td:nth-child(11) { width: 90px; min-width: 90px; max-width: 90px; }
+.table-premium td:nth-child(11) { width: 90px; min-width: 130px; max-width: 90px; }
 
 /* ========================================
    PENDING DUES TABLE
@@ -678,9 +678,9 @@
 }
 .pending-table th:nth-child(3),
 .pending-table td:nth-child(3) { 
-  width: 140px; 
-  min-width: 140px; 
-  max-width: 140px; 
+  width: 120px; 
+  min-width: 120px; 
+  max-width: 120px; 
 }
 .pending-table th:nth-child(4),
 .pending-table td:nth-child(4) { 
@@ -708,9 +708,9 @@
 }
 .pending-table th:nth-child(8),
 .pending-table td:nth-child(8) { 
-  width: 90px; 
-  min-width: 90px; 
-  max-width: 90px; 
+  width: 110px; 
+  min-width: 110px; 
+  max-width: 110px; 
 }
 
 /* Group Header */

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// API Base URL
-const API_URL = 'http://127.0.0.1:8000/api/';
+// 🔥 Mobile Access Ke Liye - Laptop Ki IP Daalein
+const API_URL = 'http://10.221.234.205:8000/api/';
 
 // Create axios instance
 const api = axios.create({

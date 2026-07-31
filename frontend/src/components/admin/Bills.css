@@ -94,22 +94,22 @@
   transition: all 0.3s ease;
 }
 
-[data-bs-theme="dark"] .bills-header-icon {
+[data-theme="dark"] .bills-header-icon {
   color: #8B83FF;
   filter: drop-shadow(0 0 12px rgba(108, 99, 255, 0.25));
 }
 
-[data-bs-theme="light"] .bills-header-icon {
+[data-theme="light"] .bills-header-icon {
   color: #6C63FF;
 }
 
-[data-bs-theme="dark"] .bills-header h1 {
+[data-theme="dark"] .bills-header h1 {
   background: linear-gradient(135deg, #fff, rgba(255,255,255,0.5));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-[data-bs-theme="light"] .bills-header h1 {
+[data-theme="light"] .bills-header h1 {
   color: #0A0A0A;
 }
 
@@ -129,11 +129,11 @@
   box-shadow: var(--shadow);
 }
 
-[data-bs-theme="dark"] .month-selector-bar {
+[data-theme="dark"] .month-selector-bar {
   background: #0A0E1A;
 }
 
-[data-bs-theme="light"] .month-selector-bar {
+[data-theme="light"] .month-selector-bar {
   background: #FFFFFF;
 }
 
@@ -149,6 +149,7 @@
   font-size: 20px;
 }
 
+/* 🔥 MONTH SELECT - FIXED VISIBILITY */
 .month-select {
   background: var(--bg-glass);
   border: 1px solid var(--border-color);
@@ -161,6 +162,12 @@
   cursor: pointer;
   min-width: 180px;
   transition: all 0.3s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236C63FF' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
 }
 
 .month-select:focus {
@@ -168,24 +175,56 @@
   box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.08);
 }
 
-[data-bs-theme="dark"] .month-select {
+/* 🔥 DARK MODE - Dropdown Options */
+[data-theme="dark"] .month-select {
   background-color: #1A2234;
   color: #FFFFFF;
 }
 
-[data-bs-theme="dark"] .month-select option {
-  background-color: #1A2234;
-  color: #FFFFFF;
+[data-theme="dark"] .month-select option {
+  background-color: #1A2234 !important;
+  color: #FFFFFF !important;
+  padding: 12px 16px !important;
+  font-size: 14px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
 }
 
-[data-bs-theme="light"] .month-select {
+[data-theme="dark"] .month-select option:hover,
+[data-theme="dark"] .month-select option:focus {
+  background-color: rgba(108, 99, 255, 0.2) !important;
+  color: #6C63FF !important;
+}
+
+[data-theme="dark"] .month-select option:checked {
+  background-color: rgba(108, 99, 255, 0.25) !important;
+  color: #6C63FF !important;
+  font-weight: 700 !important;
+}
+
+/* 🔥 LIGHT MODE - Dropdown Options */
+[data-theme="light"] .month-select {
   background-color: #FFFFFF;
   color: #0A0A0A;
 }
 
-[data-bs-theme="light"] .month-select option {
-  background-color: #FFFFFF;
-  color: #0A0A0A;
+[data-theme="light"] .month-select option {
+  background-color: #FFFFFF !important;
+  color: #0A0A0A !important;
+  padding: 12px 16px !important;
+  font-size: 14px !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+[data-theme="light"] .month-select option:hover,
+[data-theme="light"] .month-select option:focus {
+  background-color: rgba(108, 99, 255, 0.1) !important;
+  color: #6C63FF !important;
+}
+
+[data-theme="light"] .month-select option:checked {
+  background-color: rgba(108, 99, 255, 0.15) !important;
+  color: #6C63FF !important;
+  font-weight: 700 !important;
 }
 
 .month-actions {
@@ -311,12 +350,12 @@
   color: var(--text-primary) !important;
 }
 
-.modal-body .form-select option {
+[data-theme="dark"] .modal-body .form-select option {
   background-color: #1A2234 !important;
   color: #FFFFFF !important;
 }
 
-[data-bs-theme="light"] .modal-body .form-select option {
+[data-theme="light"] .modal-body .form-select option {
   background-color: #FFFFFF !important;
   color: #0A0A0A !important;
 }
@@ -422,7 +461,7 @@
   background: transparent;
 }
 
-[data-bs-theme="light"] .table-premium thead th {
+[data-theme="light"] .table-premium thead th {
   color: #4A42C4;
   border-bottom: 2px solid rgba(74, 66, 196, 0.15);
 }
@@ -447,7 +486,7 @@
   text-align: center;
 }
 
-[data-bs-theme="light"] .table-premium tbody td {
+[data-theme="light"] .table-premium tbody td {
   color: #0A0A0A;
 }
 
@@ -539,7 +578,7 @@
   border: 1px solid rgba(52, 211, 153, 0.2);
 }
 
-[data-bs-theme="light"] .badge-status.closed {
+[data-theme="light"] .badge-status.closed {
   background: rgba(52, 211, 153, 0.12);
   color: #059669;
   border: 1px solid rgba(52, 211, 153, 0.15);
@@ -551,7 +590,7 @@
   border: 1px solid rgba(251, 191, 36, 0.2);
 }
 
-[data-bs-theme="light"] .badge-status.active {
+[data-theme="light"] .badge-status.active {
   background: rgba(251, 191, 36, 0.12);
   color: #D97706;
   border: 1px solid rgba(251, 191, 36, 0.15);
@@ -563,7 +602,7 @@
   border: 1px solid rgba(6, 182, 212, 0.2);
 }
 
-[data-bs-theme="light"] .badge-status.partial {
+[data-theme="light"] .badge-status.partial {
   background: rgba(6, 182, 212, 0.12);
   color: #0891B2;
   border: 1px solid rgba(6, 182, 212, 0.15);
@@ -595,124 +634,6 @@
   color: var(--text-muted);
 }
 
-/* ========================================
-   RESPONSIVE
-   ======================================== */
-@media (max-width: 768px) {
-  .bills-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-  .bills-header h1 {
-    font-size: 18px;
-  }
-  .month-selector-bar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-  }
-  .month-select {
-    min-width: unset;
-    width: 100%;
-  }
-  .month-actions {
-    justify-content: flex-end;
-  }
-  .action-btn {
-    width: 32px;
-    height: 32px;
-    font-size: 14px;
-    border-radius: 10px;
-  }
-  .table-actions {
-    gap: 5px;
-  }
-  .table-premium {
-    font-size: 13px;
-  }
-  .table-premium thead th {
-    font-size: 11px;
-    padding: 8px 10px;
-  }
-  .table-premium tbody td {
-    padding: 8px 10px;
-    font-size: 13px;
-  }
-  .modal-header {
-    padding: 16px 20px !important;
-  }
-  .modal-body {
-    padding: 20px !important;
-  }
-  .modal-footer {
-    padding: 12px 20px !important;
-  }
-}
-
-@media (max-width: 576px) {
-  .action-btn {
-    width: 28px;
-    height: 28px;
-    font-size: 12px;
-    border-radius: 8px;
-  }
-  .table-actions {
-    gap: 4px;
-  }
-  .custom-alert-top {
-    padding: 8px 12px;
-  }
-  .custom-alert-top-icon {
-    width: 24px;
-    height: 24px;
-    font-size: 12px;
-  }
-  .custom-alert-top-message {
-    font-size: 12px;
-  }
-  .custom-alert-top-close {
-    width: 22px;
-    height: 22px;
-    font-size: 14px;
-  }
-  .month-selector-bar {
-    padding: 10px 12px;
-  }
-  .month-select {
-    font-size: 13px;
-    padding: 8px 12px;
-  }
-  .table-premium {
-    font-size: 12px;
-  }
-  .table-premium thead th {
-    font-size: 10px;
-    padding: 6px 8px;
-  }
-  .table-premium tbody td {
-    padding: 6px 8px;
-    font-size: 12px;
-  }
-  .badge-status {
-    font-size: 10px;
-    padding: 3px 10px;
-  }
-  .edit-btn {
-    font-size: 10px !important;
-    padding: 4px 10px !important;
-  }
-  .modal-content {
-    border-radius: 16px !important;
-  }
-  .modal-header .modal-title {
-    font-size: 17px !important;
-  }
-  .payment-info-item {
-    font-size: 12px;
-    padding: 4px 0;
-  }
-}
 /* ========================================
    DELETE CONFIRMATION MODAL - PREMIUM
    ======================================== */
@@ -772,10 +693,10 @@
   opacity: 0.6 !important;
   transform: none !important;
 }
+
 /* ========================================
    BILLS TABLE - SCROLL & EQUAL GAPS
    ======================================== */
-
 .bill-table-scroll {
   overflow-x: auto;
   overflow-y: hidden;
@@ -933,4 +854,123 @@
   width: 100px; 
   min-width: 100px; 
   max-width: 100px; 
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 768px) {
+  .bills-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .bills-header h1 {
+    font-size: 18px;
+  }
+  .month-selector-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .month-select {
+    min-width: unset;
+    width: 100%;
+  }
+  .month-actions {
+    justify-content: flex-end;
+  }
+  .action-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+  .table-actions {
+    gap: 5px;
+  }
+  .table-premium {
+    font-size: 13px;
+  }
+  .table-premium thead th {
+    font-size: 11px;
+    padding: 8px 10px;
+  }
+  .table-premium tbody td {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+  .modal-header {
+    padding: 16px 20px !important;
+  }
+  .modal-body {
+    padding: 20px !important;
+  }
+  .modal-footer {
+    padding: 12px 20px !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .action-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+  .table-actions {
+    gap: 4px;
+  }
+  .custom-alert-top {
+    padding: 8px 12px;
+  }
+  .custom-alert-top-icon {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+  }
+  .custom-alert-top-message {
+    font-size: 12px;
+  }
+  .custom-alert-top-close {
+    width: 22px;
+    height: 22px;
+    font-size: 14px;
+  }
+  .month-selector-bar {
+    padding: 10px 12px;
+  }
+  .month-select {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+  .table-premium {
+    font-size: 12px;
+  }
+  .table-premium thead th {
+    font-size: 10px;
+    padding: 6px 8px;
+  }
+  .table-premium tbody td {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+  .badge-status {
+    font-size: 10px;
+    padding: 3px 10px;
+  }
+  .edit-btn {
+    font-size: 10px !important;
+    padding: 4px 10px !important;
+  }
+  .modal-content {
+    border-radius: 16px !important;
+  }
+  .modal-header .modal-title {
+    font-size: 17px !important;
+  }
+  .payment-info-item {
+    font-size: 12px;
+    padding: 4px 0;
+  }
 }

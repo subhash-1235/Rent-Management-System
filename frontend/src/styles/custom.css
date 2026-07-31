@@ -97,12 +97,12 @@ body {
 }
 
 /* ========================================
-   STAT CARDS
+   STAT CARDS - MOBILE FRIENDLY
    ======================================== */
 .stat-card {
   border-radius: 12px;
-  padding: 14px 18px;
-  min-height: 78px;
+  padding: 12px 14px;
+  min-height: 72px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -114,7 +114,7 @@ body {
 }
 
 .stat-card:hover {
-  transform: translateY(-6px) scale(1.02);
+  transform: translateY(-3px);
   box-shadow: var(--shadow-hover);
   border-color: rgba(255, 255, 255, 0.15);
 }
@@ -127,7 +127,7 @@ body {
 }
 
 .stat-card .stat-icon {
-  font-size: 22px;
+  font-size: 20px;
   color: white !important;
   transition: transform 0.3s ease;
 }
@@ -137,17 +137,13 @@ body {
 }
 
 .stat-card .stat-change {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  padding: 2px 12px;
+  padding: 2px 10px;
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.10);
   color: white !important;
   transition: all 0.3s ease;
-}
-
-.stat-card:hover .stat-change {
-  background: rgba(255, 255, 255, 0.18);
 }
 
 .stat-card .stat-right {
@@ -158,7 +154,7 @@ body {
 }
 
 .stat-card .stat-number {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 900;
   color: white;
   letter-spacing: -0.5px;
@@ -166,31 +162,22 @@ body {
   transition: transform 0.3s ease;
 }
 
-.stat-card:hover .stat-number {
-  transform: scale(1.05);
-}
-
 .stat-card .stat-label {
   color: rgba(255, 255, 255, 0.7);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   line-height: 1.2;
-  transition: color 0.3s ease;
-}
-
-.stat-card:hover .stat-label {
-  color: rgba(255, 255, 255, 0.9);
 }
 
 .stat-card .stat-glow {
   position: absolute;
-  width: 120px;
-  height: 120px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   filter: blur(70px);
   opacity: 0;
-  right: -40px;
-  bottom: -40px;
+  right: -30px;
+  bottom: -30px;
   pointer-events: none;
   transition: opacity 0.5s ease;
 }
@@ -213,10 +200,6 @@ body {
 .stat-card.card-gold .stat-glow {
   background: radial-gradient(circle, #FFD700, transparent 70%);
 }
-.stat-card.card-gold:hover {
-  border-color: rgba(255, 215, 0, 0.25);
-  box-shadow: 0 16px 56px rgba(255, 215, 0, 0.08);
-}
 
 .stat-card.card-purple {
   background: linear-gradient(145deg, #1a0a2e, #2d1b69);
@@ -230,10 +213,6 @@ body {
 }
 .stat-card.card-purple .stat-glow {
   background: radial-gradient(circle, #B266FF, transparent 70%);
-}
-.stat-card.card-purple:hover {
-  border-color: rgba(138, 43, 226, 0.25);
-  box-shadow: 0 16px 56px rgba(138, 43, 226, 0.08);
 }
 
 .stat-card.card-green {
@@ -249,10 +228,6 @@ body {
 .stat-card.card-green .stat-glow {
   background: radial-gradient(circle, #00FF7F, transparent 70%);
 }
-.stat-card.card-green:hover {
-  border-color: rgba(0, 255, 127, 0.20);
-  box-shadow: 0 16px 56px rgba(0, 255, 127, 0.08);
-}
 
 .stat-card.card-rose {
   background: linear-gradient(145deg, #1a0a0a, #2e0d0d);
@@ -266,10 +241,6 @@ body {
 }
 .stat-card.card-rose .stat-glow {
   background: radial-gradient(circle, #FF6B6B, transparent 70%);
-}
-.stat-card.card-rose:hover {
-  border-color: rgba(255, 69, 69, 0.20);
-  box-shadow: 0 16px 56px rgba(255, 69, 69, 0.08);
 }
 
 .stat-card.card-blue {
@@ -285,10 +256,6 @@ body {
 .stat-card.card-blue .stat-glow {
   background: radial-gradient(circle, #459FFF, transparent 70%);
 }
-.stat-card.card-blue:hover {
-  border-color: rgba(69, 159, 255, 0.20);
-  box-shadow: 0 16px 56px rgba(69, 159, 255, 0.08);
-}
 
 /* ========================================
    BUTTONS
@@ -296,16 +263,16 @@ body {
 .btn-primary-gradient {
   background: linear-gradient(135deg, #6C63FF, #4A42C4);
   border: none;
-  padding: 7px 16px;
+  padding: 6px 14px;
   border-radius: 8px;
   color: white;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 11px;
   transition: all 0.3s ease;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   box-shadow: 0 4px 15px rgba(108, 99, 255, 0.15);
 }
 
@@ -328,7 +295,7 @@ body {
 .btn-ghost {
   background: var(--bg-glass);
   border: 1px solid var(--border-color);
-  padding: 7px 16px;
+  padding: 6px 14px;
   border-radius: 8px;
   color: var(--text-secondary);
   font-weight: 600;
@@ -337,7 +304,7 @@ body {
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
 }
 
 .btn-ghost:hover {
@@ -355,7 +322,7 @@ body {
 }
 
 /* ========================================
-   TABLE
+   TABLE - MOBILE FRIENDLY
    ======================================== */
 .table-wrap {
   background: var(--bg-card);
@@ -378,7 +345,7 @@ body {
 
 .table-premium thead th {
   padding: 8px 10px;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -400,7 +367,7 @@ body {
 
 .table-premium tbody td {
   padding: 8px 10px;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-primary);
   border-bottom: 1px solid var(--border-color);
   vertical-align: middle;
@@ -411,13 +378,13 @@ body {
    STATUS BADGES
    ======================================== */
 .badge-status {
-  padding: 3px 12px;
+  padding: 2px 10px;
   border-radius: 50px;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   white-space: nowrap;
 }
 
@@ -452,8 +419,8 @@ body {
 }
 
 .action-btn {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border-radius: 6px;
   border: none;
   background: var(--bg-glass);
@@ -537,13 +504,13 @@ body {
 }
 
 .pagination-custom button {
-  padding: 4px 12px;
+  padding: 4px 10px;
   border-radius: 6px;
   border: 1px solid var(--border-color);
   background: var(--bg-glass);
   color: var(--text-secondary);
   font-weight: 500;
-  font-size: 11px;
+  font-size: 10px;
   transition: all 0.3s ease;
   cursor: pointer;
 }
@@ -561,7 +528,7 @@ body {
 
 .pagination-custom .page-info {
   color: var(--text-secondary);
-  font-size: 11px;
+  font-size: 10px;
   margin: 0 5px;
 }
 
@@ -599,8 +566,10 @@ body {
 }
 
 /* ========================================
-   RESPONSIVE
+   RESPONSIVE - MOBILE FIX
    ======================================== */
+
+/* Tablet */
 @media (max-width: 992px) {
   .main-content {
     margin-left: 0;
@@ -609,21 +578,15 @@ body {
   .page-content {
     padding: 12px 16px;
   }
-}
-
-@media (max-width: 768px) {
-  .page-content {
-    padding: 10px 12px;
-  }
   .stat-card {
-    padding: 10px 14px;
+    padding: 10px 12px;
     min-height: 65px;
+  }
+  .stat-card .stat-number {
+    font-size: 18px;
   }
   .stat-card .stat-icon {
     font-size: 18px;
-  }
-  .stat-card .stat-number {
-    font-size: 19px;
   }
   .stat-card .stat-label {
     font-size: 10px;
@@ -634,32 +597,44 @@ body {
   }
 }
 
-@media (max-width: 576px) {
-  .page-content {
-    padding: 8px;
+/* Mobile */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    width: 100%;
   }
+  
+  .page-content {
+    padding: 8px 10px;
+  }
+  
+  /* Stats Cards - 2 per row */
   .stat-card {
-    padding: 6px 10px;
+    padding: 8px 10px;
     min-height: 55px;
+  }
+  .stat-card .stat-number {
+    font-size: 15px;
   }
   .stat-card .stat-icon {
     font-size: 15px;
-  }
-  .stat-card .stat-number {
-    font-size: 16px;
   }
   .stat-card .stat-label {
     font-size: 9px;
   }
   .stat-card .stat-change {
     font-size: 8px;
-    padding: 1px 5px;
+    padding: 1px 6px;
   }
+  
+  /* Buttons */
   .btn-primary-gradient,
   .btn-ghost {
     padding: 4px 10px;
     font-size: 9px;
   }
+  
+  /* Table */
   .table-wrap {
     padding: 6px;
   }
@@ -667,9 +642,94 @@ body {
     font-size: 11px;
     min-width: 500px;
   }
-  .table-premium thead th,
+  .table-premium thead th {
+    font-size: 9px;
+    padding: 4px 6px;
+  }
   .table-premium tbody td {
     padding: 4px 6px;
     font-size: 10px;
+  }
+  .badge-status {
+    font-size: 8px;
+    padding: 1px 6px;
+  }
+  .action-btn {
+    width: 24px;
+    height: 24px;
+  }
+  .action-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+  
+  /* Dashboard Buttons */
+  .dashboard-buttons {
+    gap: 4px;
+  }
+  
+  /* Pagination */
+  .pagination-custom button {
+    padding: 3px 8px;
+    font-size: 9px;
+  }
+  .pagination-custom .page-info {
+    font-size: 9px;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+  .page-content {
+    padding: 6px 8px;
+  }
+  
+  .stat-card {
+    padding: 6px 8px;
+    min-height: 48px;
+  }
+  .stat-card .stat-number {
+    font-size: 13px;
+  }
+  .stat-card .stat-icon {
+    font-size: 13px;
+  }
+  .stat-card .stat-label {
+    font-size: 8px;
+  }
+  .stat-card .stat-change {
+    font-size: 7px;
+    padding: 1px 4px;
+  }
+  
+  .table-premium {
+    font-size: 10px;
+    min-width: 400px;
+  }
+  .table-premium thead th {
+    font-size: 8px;
+    padding: 3px 4px;
+  }
+  .table-premium tbody td {
+    padding: 3px 4px;
+    font-size: 9px;
+  }
+  .badge-status {
+    font-size: 7px;
+    padding: 1px 4px;
+  }
+  .action-btn {
+    width: 20px;
+    height: 20px;
+  }
+  .action-btn svg {
+    width: 10px;
+    height: 10px;
+  }
+  
+  .btn-primary-gradient,
+  .btn-ghost {
+    padding: 3px 8px;
+    font-size: 8px;
   }
 }

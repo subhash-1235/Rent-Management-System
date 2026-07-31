@@ -2,6 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://10.145.251.205:8000",
   "dependencies": {
     "@react-icons/all-files": "^4.1.0",
     "@testing-library/dom": "^10.4.1",
