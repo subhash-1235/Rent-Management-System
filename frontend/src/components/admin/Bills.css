@@ -974,3 +974,725 @@
     padding: 4px 0;
   }
 }
+/* ========================================
+   PENDING DUES TABLE - SIMPLE & CLEAN
+   ======================================== */
+
+.pending-dues-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px 18px 18px 18px;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow);
+  margin-top: 20px;
+}
+
+[data-theme="dark"] .pending-dues-section {
+  background: #0A0E1A;
+}
+
+[data-theme="light"] .pending-dues-section {
+  background: #FFFFFF;
+}
+
+.pending-dues-wrapper {
+  width: 100%;
+}
+
+/* ========================================
+   HEADER
+   ======================================== */
+.pending-dues-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pending-dues-title {
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 16px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pending-dues-title svg {
+  color: #6C63FF;
+}
+
+.pending-dues-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  padding: 4px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+}
+
+[data-theme="light"] .pending-dues-count {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+/* ========================================
+   TABLE WRAPPER
+   ======================================== */
+.pending-dues-table {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pending-dues-table table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 500px;
+}
+
+/* ========================================
+   TABLE HEADER
+   ======================================== */
+.pending-dues-table thead th {
+  padding: 10px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6C63FF;
+  border-bottom: 2px solid rgba(108, 99, 255, 0.15);
+  background: var(--bg-glass);
+  white-space: nowrap;
+  text-align: left;
+}
+
+[data-theme="light"] .pending-dues-table thead th {
+  color: #4A42C4;
+  border-bottom: 2px solid rgba(74, 66, 196, 0.15);
+}
+
+/* ========================================
+   COLUMN WIDTHS
+   ======================================== */
+.pending-dues-table .col-sno {
+  width: 45px;
+  min-width: 45px;
+  text-align: center;
+}
+
+.pending-dues-table .col-room {
+  width: 18%;
+  min-width: 100px;
+}
+
+.pending-dues-table .col-tenant {
+  width: 30%;
+  min-width: 140px;
+}
+
+.pending-dues-table .col-pending {
+  width: 20%;
+  min-width: 110px;
+  text-align: left;
+}
+
+.pending-dues-table .col-action {
+  width: 20%;
+  min-width: 100px;
+  text-align: center;
+}
+
+.pending-dues-table .col-expand {
+  width: 40px;
+  min-width: 40px;
+  text-align: center;
+}
+
+/* ========================================
+   TABLE BODY
+   ======================================== */
+.pending-dues-table tbody tr {
+  transition: all 0.3s ease;
+  background: var(--bg-glass);
+  cursor: pointer;
+}
+
+.pending-dues-table tbody tr:hover {
+  background: var(--bg-card-hover);
+}
+
+[data-theme="light"] .pending-dues-table tbody tr:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.pending-dues-table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* ========================================
+   CELL STYLES
+   ======================================== */
+.pending-dues-table .cell-sno {
+  text-align: center;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.pending-dues-table .cell-room {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.pending-dues-table .cell-tenant {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.pending-dues-table .cell-pending {
+  text-align: left;
+  font-weight: 700;
+  font-size: 14px;
+  color: #F87171;
+}
+
+[data-theme="light"] .pending-dues-table .cell-pending {
+  color: #EF4444;
+}
+
+.pending-dues-table .cell-action {
+  text-align: center;
+}
+
+.pending-dues-table .cell-expand {
+  text-align: center;
+  color: var(--text-muted);
+  transition: transform 0.3s ease;
+}
+
+.pending-dues-table .cell-expand.open {
+  color: #6C63FF;
+  transform: rotate(180deg);
+}
+
+/* ========================================
+   PAY ALL BUTTON
+   ======================================== */
+.btn-pay-all {
+  background: linear-gradient(135deg, #099537, #099537);
+  border: none;
+  color: white;
+  padding: 5px 18px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  box-shadow: 0 2px 12px rgba(108, 99, 255, 0.15);
+}
+
+.btn-pay-all:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(108, 99, 255, 0.3);
+  background: linear-gradient(135deg, #7C73FF, #5A52D4);
+}
+
+.btn-pay-all:active {
+  transform: scale(0.95);
+}
+
+/* ========================================
+   EXPANDABLE ROW
+   ======================================== */
+.expandable-row {
+  background: var(--bg-secondary);
+}
+
+[data-theme="light"] .expandable-row {
+  background: rgba(0, 0, 0, 0.01);
+}
+
+.expandable-row td {
+  padding: 0 !important;
+}
+
+.expandable-content {
+  padding: 12px 16px 14px 16px;
+  border-top: 1px solid var(--border-color);
+}
+
+.expandable-content .month-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.expandable-content .month-label .line {
+  flex: 1;
+  height: 1px;
+  background: var(--border-color);
+}
+
+/* ========================================
+   MONTH GRID - AUTO SIZE CARDS
+   ======================================== */
+.month-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Month Card - Auto Width based on content */
+.month-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 14px;
+  background: var(--bg-glass);
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+  flex: 0 1 auto;
+  min-width: 80px;
+}
+
+[data-theme="light"] .month-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+.month-card:hover {
+  border-color: #6C63FF;
+  transform: translateY(-2px);
+}
+
+.month-card .m-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+
+.month-card .m-amount {
+  font-size: 14px;
+  font-weight: 700;
+  color: #F87171;
+  margin-bottom: 4px;
+}
+
+[data-theme="light"] .month-card .m-amount {
+  color: #EF4444;
+}
+
+/* 🔥 GREEN PAY BUTTON */
+.month-card .m-pay-btn {
+  background: linear-gradient(135deg, #099537, #099537);
+  border: none;
+  color: white;
+  padding: 3px 16px;
+  border-radius: 14px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(52, 211, 153, 0.2);
+}
+
+.month-card .m-pay-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(52, 211, 153, 0.35);
+}
+
+/* Total Card */
+.month-card.total {
+  border: 2px solid #415743;
+  background: rgba(108, 99, 255, 0.04);
+}
+
+[data-theme="light"] .month-card.total {
+  background: rgba(108, 99, 255, 0.02);
+}
+
+.month-card.total .m-amount {
+  color: #6C63FF;
+  font-size: 16px;
+}
+
+/* 🔥 GREEN PAY ALL BUTTON */
+.month-card .m-pay-all {
+  background: linear-gradient(135deg, #099537, #099537);
+  border: none;
+  color: white;
+  padding: 3px 16px;
+  border-radius: 14px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(52, 211, 153, 0.2);
+}
+
+.month-card .m-pay-all:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(52, 211, 153, 0.35);
+}
+
+/* ========================================
+   EMPTY STATE
+   ======================================== */
+.pending-dues-empty {
+  text-align: center;
+  padding: 30px 16px;
+}
+
+.pending-dues-empty .empty-icon {
+  font-size: 40px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.pending-dues-empty .empty-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.pending-dues-empty .empty-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ========================================
+   RESPONSIVE - TABLET
+   ======================================== */
+@media (max-width: 992px) {
+  .pending-dues-table table {
+    min-width: 450px;
+  }
+  
+  .pending-dues-table .col-room {
+    width: 16%;
+    min-width: 80px;
+  }
+  
+  .pending-dues-table .col-tenant {
+    width: 28%;
+    min-width: 110px;
+  }
+  
+  .pending-dues-table .col-pending {
+    width: 18%;
+    min-width: 90px;
+  }
+  
+  .pending-dues-table .col-action {
+    width: 18%;
+    min-width: 85px;
+  }
+  
+  .month-grid {
+    gap: 6px;
+  }
+  
+  .month-card {
+    padding: 6px 12px;
+    min-width: 70px;
+  }
+}
+
+/* ========================================
+   RESPONSIVE - MOBILE
+   ======================================== */
+@media (max-width: 768px) {
+  .pending-dues-section {
+    padding: 12px 12px 14px 12px;
+    margin-top: 16px;
+  }
+  
+  .pending-dues-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .pending-dues-title {
+    font-size: 14px;
+  }
+  
+  .pending-dues-count {
+    font-size: 11px;
+    padding: 3px 12px;
+  }
+  
+  .pending-dues-table table {
+    min-width: 400px;
+  }
+  
+  .pending-dues-table thead th {
+    font-size: 10px;
+    padding: 8px 10px;
+  }
+  
+  .pending-dues-table tbody td {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+  
+  .pending-dues-table .col-sno {
+    width: 35px;
+    min-width: 35px;
+  }
+  
+  .pending-dues-table .col-room {
+    width: 15%;
+    min-width: 70px;
+  }
+  
+  .pending-dues-table .col-tenant {
+    width: 26%;
+    min-width: 90px;
+  }
+  
+  .pending-dues-table .col-pending {
+    width: 18%;
+    min-width: 80px;
+  }
+  
+  .pending-dues-table .col-action {
+    width: 17%;
+    min-width: 75px;
+  }
+  
+  .pending-dues-table .col-expand {
+    width: 32px;
+    min-width: 32px;
+  }
+  
+  .pending-dues-table .cell-pending {
+    font-size: 13px;
+  }
+  
+  .btn-pay-all {
+    font-size: 10px;
+    padding: 4px 12px;
+  }
+  
+  .btn-pay-all svg {
+    display: none;
+  }
+  
+  .expandable-content {
+    padding: 10px 12px 12px 12px;
+  }
+  
+  .expandable-content .month-label {
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+  
+  /* Auto width cards on mobile */
+  .month-grid {
+    gap: 6px;
+  }
+  
+  .month-card {
+    padding: 6px 10px;
+    min-width: 65px;
+    border-radius: 8px;
+  }
+  
+  .month-card .m-name {
+    font-size: 10px;
+  }
+  
+  .month-card .m-amount {
+    font-size: 12px;
+  }
+  
+  .month-card.total .m-amount {
+    font-size: 14px;
+  }
+  
+  .month-card .m-pay-btn {
+    font-size: 9px;
+    padding: 2px 12px;
+  }
+  
+  .month-card .m-pay-all {
+    font-size: 9px;
+    padding: 2px 12px;
+  }
+  
+  .pending-dues-empty {
+    padding: 20px 12px;
+  }
+  
+  .pending-dues-empty .empty-icon {
+    font-size: 32px;
+  }
+  
+  .pending-dues-empty .empty-title {
+    font-size: 14px;
+  }
+  
+  .pending-dues-empty .empty-sub {
+    font-size: 12px;
+  }
+}
+
+/* ========================================
+   RESPONSIVE - SMALL MOBILE
+   ======================================== */
+@media (max-width: 480px) {
+  .pending-dues-section {
+    padding: 10px 8px 12px 8px;
+    border-radius: 10px;
+    margin-top: 12px;
+  }
+  
+  .pending-dues-table table {
+    min-width: 320px;
+  }
+  
+  .pending-dues-table thead th {
+    font-size: 9px;
+    padding: 6px 6px;
+    letter-spacing: 0.3px;
+  }
+  
+  .pending-dues-table tbody td {
+    font-size: 11px;
+    padding: 6px 6px;
+  }
+  
+  .pending-dues-table .col-sno {
+    width: 28px;
+    min-width: 28px;
+  }
+  
+  .pending-dues-table .col-room {
+    width: 14%;
+    min-width: 55px;
+  }
+  
+  .pending-dues-table .col-tenant {
+    width: 24%;
+    min-width: 70px;
+  }
+  
+  .pending-dues-table .col-pending {
+    width: 16%;
+    min-width: 65px;
+  }
+  
+  .pending-dues-table .col-action {
+    width: 15%;
+    min-width: 60px;
+  }
+  
+  .pending-dues-table .col-expand {
+    width: 28px;
+    min-width: 28px;
+  }
+  
+  .pending-dues-table .cell-pending {
+    font-size: 12px;
+  }
+  
+  .pending-dues-table .cell-sno {
+    font-size: 11px;
+  }
+  
+  .btn-pay-all {
+    font-size: 9px;
+    padding: 3px 8px;
+    border-radius: 14px;
+  }
+  
+  .expandable-content {
+    padding: 8px 8px 10px 8px;
+  }
+  
+  .expandable-content .month-label {
+    font-size: 10px;
+    margin-bottom: 4px;
+  }
+  
+  /* Very small auto width cards */
+  .month-grid {
+    gap: 15px;
+  }
+  
+  .month-card {
+    padding: 4px 8px;
+    min-width: 55px;
+    border-radius: 6px;
+  }
+  
+  .month-card .m-name {
+    font-size: 9px;
+  }
+  
+  .month-card .m-amount {
+    font-size: 11px;
+  }
+  
+  .month-card.total .m-amount {
+    font-size: 12px;
+  }
+  
+  .month-card .m-pay-btn {
+    font-size: 9px;
+    padding: 3px 15px;
+    border-radius: 10px;
+    min-width: 65px;
+  }
+  
+  .month-card .m-pay-all {
+    font-size: 9px;
+    padding: 3px 15px;
+    border-radius: 10px;
+    min-width: 65px;
+  }
+  
+  .pending-dues-title {
+    font-size: 13px;
+  }
+  
+  .pending-dues-count {
+    font-size: 10px;
+    padding: 2px 10px;
+  }
+  
+  .pending-dues-empty {
+    padding: 16px 10px;
+  }
+  
+  .pending-dues-empty .empty-icon {
+    font-size: 28px;
+  }
+  
+  .pending-dues-empty .empty-title {
+    font-size: 13px;
+  }
+  
+  .pending-dues-empty .empty-sub {
+    font-size: 11px;
+  }
+}

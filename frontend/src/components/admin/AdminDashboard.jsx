@@ -28,28 +28,28 @@ const StatsCards = ({ stats }) => {
       icon: <FiHome size={22} />, 
       number: stats.totalRooms || 0, 
       label: 'Total Rooms', 
-      change: '+12%', 
+      change: '', 
       cardClass: 'card-gold' 
     },
     { 
       icon: <FiDollarSign size={22} />, 
-      number: `₹${(stats.overallTotal || 0).toLocaleString()}`, 
+      number: `₹${(stats.overallTotal || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 
       label: 'Total Collection', 
-      change: '+8%', 
+      change: '', 
       cardClass: 'card-purple' 
     },
     { 
       icon: <FiCheckCircle size={22} />, 
-      number: `₹${(stats.currentMonthPaid || 0).toLocaleString()}`, 
+      number: `₹${(stats.currentMonthPaid || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 
       label: 'This Month Received', 
-      change: '+5%', 
+      change: '', 
       cardClass: 'card-green' 
     },
     { 
       icon: <FiClock size={22} />, 
-      number: `₹${(stats.overallPending || 0).toLocaleString()}`, 
+      number: `₹${(stats.overallPending || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 
       label: 'Total Pending', 
-      change: '-3%', 
+      change: '', 
       cardClass: 'card-rose' 
     },
   ];
@@ -233,15 +233,15 @@ const RoomTable = ({ rooms = [], month, onMonthChange, availableMonths = [], sea
 // ========================================
 // PENDING DUES TABLE
 // ========================================
-const PendingDuesTable = ({ pendingDues = [], pendingSummary = {}, searchTerm = '', onSearchChange = () => {} }) => {
+const PendingDuesTable = ({ pendingDues = [], searchTerm = '', onSearchChange = () => {} }) => {
   const [expandedTenants, setExpandedTenants] = useState({});
   const [filterMonth, setFilterMonth] = useState('all');
 
   const filteredDues = pendingDues.filter(due => {
     const monthMatch = filterMonth === 'all' || due.month === filterMonth;
     const searchMatch = !searchTerm || 
-                        due.tenant_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        due.room_number.toString().includes(searchTerm);
+                        due.tenant_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        due.room_number?.toString().includes(searchTerm);
     return monthMatch && searchMatch;
   });
 
@@ -319,9 +319,9 @@ const PendingDuesTable = ({ pendingDues = [], pendingSummary = {}, searchTerm = 
     }));
   };
 
-  const totalPending = filteredDues.reduce((sum, d) => sum + d.pending_amount, 0);
-  const totalPaid = filteredDues.reduce((sum, d) => sum + d.paid_amount, 0);
-  const totalBill = filteredDues.reduce((sum, d) => sum + d.total_amount, 0);
+  const totalPending = filteredDues.reduce((sum, d) => sum + (d.pending_amount || 0), 0);
+  const totalPaid = filteredDues.reduce((sum, d) => sum + (d.paid_amount || 0), 0);
+  const totalBill = filteredDues.reduce((sum, d) => sum + (d.total_amount || 0), 0);
 
   return (
     <div className="pending-dues-wrap">
@@ -371,9 +371,9 @@ const PendingDuesTable = ({ pendingDues = [], pendingSummary = {}, searchTerm = 
             {Object.keys(groupedDues).map((key, groupIndex) => {
               const group = groupedDues[key];
               const isExpanded = expandedTenants[key] || false;
-              const totalDue = group.dues.reduce((sum, d) => sum + d.pending_amount, 0);
-              const totalBillAmt = group.dues.reduce((sum, d) => sum + d.total_amount, 0);
-              const totalPaidAmt = group.dues.reduce((sum, d) => sum + d.paid_amount, 0);
+              const totalDue = group.dues.reduce((sum, d) => sum + (d.pending_amount || 0), 0);
+              const totalBillAmt = group.dues.reduce((sum, d) => sum + (d.total_amount || 0), 0);
+              const totalPaidAmt = group.dues.reduce((sum, d) => sum + (d.paid_amount || 0), 0);
 
               return (
                 <React.Fragment key={key}>
@@ -398,10 +398,10 @@ const PendingDuesTable = ({ pendingDues = [], pendingSummary = {}, searchTerm = 
                       <td></td>
                       <td></td>
                       <td>{due.month}</td>
-                      <td>₹{due.total_amount.toFixed(2)}</td>
-                      <td style={{ color: '#34D399' }}>₹{due.paid_amount.toFixed(2)}</td>
+                      <td>₹{(due.total_amount || 0).toFixed(2)}</td>
+                      <td style={{ color: '#34D399' }}>₹{(due.paid_amount || 0).toFixed(2)}</td>
                       <td style={{ color: '#F87171', fontWeight: 600 }}>
-                        ₹{due.pending_amount.toFixed(2)}
+                        ₹{(due.pending_amount || 0).toFixed(2)}
                       </td>
                       <td><span className="badge-status pending">⏳ Pending</span></td>
                     </tr>
@@ -413,7 +413,7 @@ const PendingDuesTable = ({ pendingDues = [], pendingSummary = {}, searchTerm = 
                       <td colSpan="2" style={{ textAlign: 'right', fontWeight: 600 }}>
                         Total for {group.tenant_name}:
                       </td>
-                      <td style={{ color: '#34D399' }}>₹{totalPaidAmt.toFixed(2)}</td>
+                      <td style={{ color: '#34D399',textAlign: 'center' }}>₹{totalPaidAmt.toFixed(2)}</td>
                       <td style={{ color: '#F87171', fontWeight: 700 }}>₹{totalDue.toFixed(2)}</td>
                       <td></td>
                     </tr>
@@ -427,9 +427,9 @@ const PendingDuesTable = ({ pendingDues = [], pendingSummary = {}, searchTerm = 
               <td colSpan="4" style={{ textAlign: 'right', fontWeight: 700 }}>
                 Grand Total:
               </td>
-              <td style={{ fontWeight: 600 }}>₹{totalBill.toFixed(2)}</td>
-              <td style={{ color: '#34D399', fontWeight: 600 }}>₹{totalPaid.toFixed(2)}</td>
-              <td style={{ color: '#F87171', fontWeight: 700, fontSize: '16px' }}>
+              <td style={{ fontWeight: 600,textAlign: 'center' }}>₹{totalBill.toFixed(2)}</td>
+              <td style={{ color: '#34D399',textAlign: 'center', fontWeight: 600 }}>₹{totalPaid.toFixed(2)}</td>
+              <td style={{ color: '#F87171',textAlign: 'center', fontWeight: 700, fontSize: '16px' }}>
                 ₹{totalPending.toFixed(2)}
               </td>
               <td></td>
@@ -442,7 +442,7 @@ const PendingDuesTable = ({ pendingDues = [], pendingSummary = {}, searchTerm = 
 };
 
 // ========================================
-// ADMIN DASHBOARD MAIN
+// ADMIN DASHBOARD MAIN - FIXED
 // ========================================
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -455,7 +455,6 @@ const AdminDashboard = () => {
   });
   const [rooms, setRooms] = useState([]);
   const [pendingDues, setPendingDues] = useState([]);
-  const [pendingSummary, setPendingSummary] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState('');
@@ -464,75 +463,114 @@ const AdminDashboard = () => {
   const [pendingSearchTerm, setPendingSearchTerm] = useState('');
 
   useEffect(() => {
-    fetchData();
-    fetchBills();
+    loadAllData();
   }, []);
 
-  // 🔥 When month changes, fetch month data
   useEffect(() => {
     if (selectedMonth) {
       fetchMonthData(selectedMonth);
     }
   }, [selectedMonth]);
 
-  const fetchBills = async () => {
+  // 🔥 MAIN FUNCTION: Load all data including pending calculation
+  const loadAllData = async () => {
     try {
-      const response = await billAPI.getAll();
-      const bills = response.data || [];
+      setLoading(true);
       
-      const months = bills.map(b => ({
-        value: b.month,
-        label: new Date(b.month).toLocaleDateString('en-US', { 
-          month: 'long', 
-          year: 'numeric' 
-        })
-      }));
+      // 1. Get all bills
+      const billsRes = await billAPI.getAll();
+      const bills = billsRes.data || [];
       
-      const uniqueMonths = {};
-      months.forEach(m => {
-        if (!uniqueMonths[m.value]) {
-          uniqueMonths[m.value] = m;
+      // 2. Get all rooms
+      const roomsRes = await roomAPI.getAll();
+      const allRooms = roomsRes.data || [];
+      const activeRooms = allRooms.filter(r => r.status === 'occupied');
+      
+      // 3. Get all readings for all bills and calculate pending
+      let overallTotalBill = 0;
+      let overallTotalPaid = 0;
+      let allPendingDues = [];
+      let monthMap = {};
+      
+      for (const bill of bills) {
+        const readingsRes = await readingAPI.getByMonth(bill.month);
+        const readings = readingsRes.data || [];
+        const monthLabel = new Date(bill.month).toLocaleDateString('en-US', { 
+          month: 'short', 
+          year: '2-digit' 
+        });
+        
+        for (const reading of readings) {
+          const total = parseFloat(reading.total_amount) || 0;
+          const paid = parseFloat(reading.paid_amount) || 0;
+          const pending = total - paid;
+          
+          overallTotalBill += total;
+          overallTotalPaid += paid;
+          
+          // Get tenant name
+          const tenantName = reading.tenant_name_snapshot || reading.room_details?.tenant_name || '—';
+          const roomNumber = reading.room_details?.room_number || reading.room || '?';
+          
+          // 🔥 Track pending dues
+          if (pending > 0 && tenantName !== '—') {
+            allPendingDues.push({
+              tenant_name: tenantName,
+              room_number: roomNumber,
+              month: monthLabel,
+              total_amount: total,
+              paid_amount: paid,
+              pending_amount: pending,
+              reading_id: reading.id
+            });
+          }
         }
-      });
+        
+        // Track months for dropdown
+        monthMap[bill.month] = {
+          value: bill.month,
+          label: new Date(bill.month).toLocaleDateString('en-US', { 
+            month: 'long', 
+            year: 'numeric' 
+          })
+        };
+      }
       
-      const sortedMonths = Object.values(uniqueMonths).sort((a, b) => 
+      // 4. Set available months
+      const sortedMonths = Object.values(monthMap).sort((a, b) => 
         new Date(b.value) - new Date(a.value)
       );
-      
       setAvailableMonths(sortedMonths);
       
       if (sortedMonths.length > 0 && !selectedMonth) {
         setSelectedMonth(sortedMonths[0].value);
       }
-    } catch (err) {
-      console.error('Error fetching bills:', err);
-    }
-  };
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
       
-      const statsRes = await dashboardAPI.getStats();
-      const statsData = statsRes.data || {};
+      // 5. Calculate current month paid
+      const currentMonth = sortedMonths.length > 0 ? sortedMonths[0].value : '';
+      let currentMonthPaid = 0;
+      if (currentMonth) {
+        const currentReadings = await readingAPI.getByMonth(currentMonth);
+        currentMonthPaid = (currentReadings.data || []).reduce((sum, r) => 
+          sum + (parseFloat(r.paid_amount) || 0), 0
+        );
+      }
       
+      // 6. Set stats
       setStats({
-        totalRooms: statsData.total_rooms || 0,
-        overallTotal: statsData.overall_total || 0,
-        currentMonthPaid: statsData.current_month_paid || 0,
-        overallPending: statsData.overall_pending || 0,
-        month: statsData.month || '',
+        totalRooms: activeRooms.length,
+        overallTotal: overallTotalPaid,
+        currentMonthPaid: currentMonthPaid,
+        overallPending: overallTotalBill - overallTotalPaid,
+        month: currentMonth,
       });
       
-      setPendingDues(statsData.pending_dues || []);
-      setPendingSummary(statsData.pending_summary || {});
-      
-      // 🔥 FIX: Don't set rooms here - let fetchMonthData handle it
-      // setRooms(statsData.room_data || []);
+      // 7. Set pending dues
+      setPendingDues(allPendingDues);
       
       setError(null);
     } catch (err) {
-      console.error('Error fetching data:', err);
+      console.error('Error loading data:', err);
       setError('Failed to load dashboard data. Please try again.');
     } finally {
       setLoading(false);
@@ -557,11 +595,9 @@ const AdminDashboard = () => {
         is_paid: reading.is_paid || false,
       }));
       
-      // 🔥 Only set rooms for the selected month
       setRooms(formattedRooms);
     } catch (err) {
       console.error('Error fetching month data:', err);
-      // 🔥 If error, set empty rooms
       setRooms([]);
     }
   };
@@ -595,7 +631,7 @@ const AdminDashboard = () => {
         {error}
         <button 
           className="btn-primary-gradient ms-3" 
-          onClick={fetchData}
+          onClick={loadAllData}
           style={{ padding: '4px 16px', fontSize: '12px' }}
         >
           Retry
@@ -637,8 +673,7 @@ const AdminDashboard = () => {
       />
 
       <PendingDuesTable 
-        pendingDues={pendingDues} 
-        pendingSummary={pendingSummary}
+        pendingDues={pendingDues}
         searchTerm={pendingSearchTerm}
         onSearchChange={setPendingSearchTerm}
       />

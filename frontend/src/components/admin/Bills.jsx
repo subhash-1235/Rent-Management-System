@@ -18,9 +18,13 @@ import {
   FiTrendingUp,
   FiArrowLeft,
   FiFileText,
-  FiInfo
+  FiInfo,
+  FiCreditCard,
+  FiLoader,
+  FiChevronDown,
+  FiChevronUp
 } from 'react-icons/fi';
-import { billAPI, roomAPI, readingAPI } from '../../services/api';
+import { billAPI, roomAPI, readingAPI, paymentAPI } from '../../services/api';
 import './Bills.css';
 
 // ========================================
@@ -176,9 +180,9 @@ const DeleteConfirmModal = ({ show, onHide, onConfirm, billMonth }) => {
 };
 
 // ========================================
-// PAYMENT MODAL
+// PAYMENT MODAL - FIXED DECIMAL ISSUE
 // ========================================
-const PaymentModal = ({ show, onHide, reading, onPaymentComplete }) => {
+const PaymentModal = ({ show, onHide, reading, onPaymentComplete, isBulk = false, bulkData = null }) => {
   const [amount, setAmount] = useState('');
   const [paymentMode, setPaymentMode] = useState('CASH');
   const [loading, setLoading] = useState(false);
@@ -189,9 +193,12 @@ const PaymentModal = ({ show, onHide, reading, onPaymentComplete }) => {
       const totalAmount = parseFloat(reading.total_amount) || 0;
       const paidAmount = parseFloat(reading.paid_amount) || 0;
       const remaining = totalAmount - paidAmount;
-      setAmount(remaining.toString());
+      setAmount(remaining.toFixed(2));
     }
-  }, [reading]);
+    if (bulkData) {
+      setAmount(bulkData.totalPending.toFixed(2));
+    }
+  }, [reading, bulkData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -200,27 +207,47 @@ const PaymentModal = ({ show, onHide, reading, onPaymentComplete }) => {
 
     try {
       const paidAmount = parseFloat(amount);
-      const totalAmount = parseFloat(reading.total_amount) || 0;
-      const alreadyPaid = parseFloat(reading.paid_amount) || 0;
-
+      
       if (paidAmount <= 0) {
         setError('Amount must be greater than 0.');
         setLoading(false);
         return;
       }
 
-      if (paidAmount > (totalAmount - alreadyPaid)) {
-        setError('Amount cannot exceed remaining balance.');
-        setLoading(false);
-        return;
+      if (isBulk && bulkData) {
+        const readings = bulkData.readings || [];
+        let totalPaid = 0;
+        
+        for (const r of readings) {
+          const remaining = (parseFloat(r.total_amount) || 0) - (parseFloat(r.paid_amount) || 0);
+          if (remaining > 0) {
+            await readingAPI.markPaid(r.id, { 
+              payment_mode: paymentMode,
+              amount: remaining
+            });
+            totalPaid += remaining;
+          }
+        }
+        
+        onPaymentComplete(totalPaid);
+      } else if (reading) {
+        const totalAmount = parseFloat(reading.total_amount) || 0;
+        const alreadyPaid = parseFloat(reading.paid_amount) || 0;
+
+        if (paidAmount > (totalAmount - alreadyPaid)) {
+          setError('Amount cannot exceed remaining balance.');
+          setLoading(false);
+          return;
+        }
+
+        await readingAPI.markPaid(reading.id, { 
+          payment_mode: paymentMode,
+          amount: paidAmount
+        });
+
+        onPaymentComplete(paidAmount);
       }
 
-      await readingAPI.markPaid(reading.id, { 
-        payment_mode: paymentMode,
-        amount: paidAmount
-      });
-
-      onPaymentComplete();
       onHide();
     } catch (err) {
       console.error('Error processing payment:', err);
@@ -230,21 +257,50 @@ const PaymentModal = ({ show, onHide, reading, onPaymentComplete }) => {
     }
   };
 
-  if (!reading) return null;
+  const getDisplayInfo = () => {
+    if (isBulk && bulkData) {
+      return {
+        title: `💰 Bulk Payment - ${bulkData.tenantName}`,
+        tenant: bulkData.tenantName,
+        room: bulkData.roomNumber,
+        total: bulkData.totalPending,
+        paid: 0,
+        remaining: bulkData.totalPending
+      };
+    }
+    
+    if (reading) {
+      const totalAmount = parseFloat(reading.total_amount) || 0;
+      const alreadyPaid = parseFloat(reading.paid_amount) || 0;
+      const remaining = totalAmount - alreadyPaid;
+      const roomData = reading.room_details || reading.room || {};
+      const roomNumber = roomData.room_number || 'N/A';
+      const tenantName = reading.tenant_name_snapshot || roomData.tenant_name || '—';
+      
+      return {
+        title: `💰 Payment - Room ${roomNumber}`,
+        tenant: tenantName,
+        room: roomNumber,
+        total: totalAmount,
+        paid: alreadyPaid,
+        remaining: remaining
+      };
+    }
+    
+    return null;
+  };
 
-  const totalAmount = parseFloat(reading.total_amount) || 0;
-  const alreadyPaid = parseFloat(reading.paid_amount) || 0;
-  const remaining = totalAmount - alreadyPaid;
-  const roomData = reading.room_details || reading.room || {};
-  const roomNumber = roomData.room_number || 'N/A';
-  const tenantName = reading.tenant_name_snapshot || roomData.tenant_name || '—';
+  const info = getDisplayInfo();
+  if (!info) return null;
+
+  const displayTotal = info.total.toFixed(2);
+  const displayPaid = info.paid.toFixed(2);
+  const displayRemaining = info.remaining.toFixed(2);
 
   return (
     <Modal show={show} onHide={onHide} centered>
       <Modal.Header style={{ borderBottom: '1px solid var(--border-color)' }}>
-        <Modal.Title style={{ color: 'var(--text-primary)' }}>
-          💰 Payment - Room {roomNumber}
-        </Modal.Title>
+        <Modal.Title style={{ color: 'var(--text-primary)' }}>{info.title}</Modal.Title>
       </Modal.Header>
       <Modal.Body style={{ background: 'var(--bg-primary)' }}>
         {error && <CustomAlert type="error" message={error} onClose={() => setError(null)} />}
@@ -252,28 +308,32 @@ const PaymentModal = ({ show, onHide, reading, onPaymentComplete }) => {
           <div className="payment-info">
             <div className="payment-info-item">
               <span className="payment-info-label">Tenant</span>
-              <span className="payment-info-value">{tenantName}</span>
+              <span className="payment-info-value">{info.tenant}</span>
             </div>
             <div className="payment-info-item">
               <span className="payment-info-label">Room</span>
-              <span className="payment-info-value">Room {roomNumber}</span>
+              <span className="payment-info-value">Room {info.room}</span>
             </div>
+            {!isBulk && (
+              <>
+                <div className="payment-info-item">
+                  <span className="payment-info-label">Total Amount</span>
+                  <span className="payment-info-value" style={{ color: '#6C63FF', fontWeight: 700 }}>
+                    ₹{displayTotal}
+                  </span>
+                </div>
+                <div className="payment-info-item">
+                  <span className="payment-info-label">Already Paid</span>
+                  <span className="payment-info-value" style={{ color: '#34D399', fontWeight: 600 }}>
+                    ₹{displayPaid}
+                  </span>
+                </div>
+              </>
+            )}
             <div className="payment-info-item">
-              <span className="payment-info-label">Total Amount</span>
-              <span className="payment-info-value" style={{ color: '#6C63FF', fontWeight: 700 }}>
-                ₹{totalAmount.toFixed(2)}
-              </span>
-            </div>
-            <div className="payment-info-item">
-              <span className="payment-info-label">Already Paid</span>
-              <span className="payment-info-value" style={{ color: '#34D399', fontWeight: 600 }}>
-                ₹{alreadyPaid.toFixed(2)}
-              </span>
-            </div>
-            <div className="payment-info-item">
-              <span className="payment-info-label">Remaining</span>
+              <span className="payment-info-label">{isBulk ? 'Total Pending' : 'Remaining'}</span>
               <span className="payment-info-value" style={{ color: '#F87171', fontWeight: 700 }}>
-                ₹{remaining.toFixed(2)}
+                ₹{displayRemaining}
               </span>
             </div>
           </div>
@@ -295,11 +355,12 @@ const PaymentModal = ({ show, onHide, reading, onPaymentComplete }) => {
               onChange={(e) => setAmount(e.target.value)}
               required
               min="0"
-              max={remaining}
-              step="0.01"
+              max={info.remaining}
+              step="any"
+              inputMode="decimal"
             />
             <small style={{ color: 'var(--text-muted)', fontSize: 12 }}>
-              Max: ₹{remaining.toFixed(2)} (Remaining balance)
+              Max: ₹{displayRemaining}
             </small>
           </Form.Group>
 
@@ -326,7 +387,13 @@ const PaymentModal = ({ show, onHide, reading, onPaymentComplete }) => {
 
           <div className="d-flex gap-2 mt-3">
             <Button type="submit" className="btn-primary-gradient" disabled={loading} style={{ flex: 1 }}>
-              {loading ? 'Processing...' : 'Confirm Payment'}
+              {loading ? (
+                <>
+                  <FiLoader className="spinning" size={16} /> Processing...
+                </>
+              ) : (
+                `Pay ₹${parseFloat(amount || 0).toFixed(2)}`
+              )}
             </Button>
             <Button variant="secondary" className="btn-ghost" onClick={onHide}>Cancel</Button>
           </div>
@@ -477,7 +544,8 @@ const AddBillModal = ({ show, onHide, onBillAdded }) => {
                   onChange={handleChange} 
                   required 
                   min="0" 
-                  step="0.01" 
+                  step="any"
+                  inputMode="decimal"
                 />
               </Form.Group>
             </Col>
@@ -506,7 +574,8 @@ const AddBillModal = ({ show, onHide, onBillAdded }) => {
                     value={readings[room.id] || ''} 
                     onChange={(e) => handleReadingChange(room.id, e.target.value)} 
                     min="0" 
-                    step="0.01" 
+                    step="any"
+                    inputMode="decimal"
                   />
                 </div>
               </Form.Group>
@@ -526,12 +595,209 @@ const AddBillModal = ({ show, onHide, onBillAdded }) => {
 };
 
 // ========================================
+// PENDING DUES SUMMARY - WITH MONTH COUNT
+// ========================================
+const PendingDuesSummary = ({ allBillDetails, onPayAll, onPayIndividual }) => {
+  const [expandedTenants, setExpandedTenants] = useState({});
+  
+  const groupAllTenants = () => {
+    const grouped = {};
+    
+    allBillDetails.forEach(reading => {
+      const roomData = reading.room_details || reading.room || {};
+      const tenantName = reading.tenant_name_snapshot || roomData.tenant_name || '—';
+      
+      if (tenantName === '—') return;
+      
+      const key = `${roomData.id || reading.room}_${tenantName}`;
+      
+      if (!grouped[key]) {
+        grouped[key] = {
+          tenantName: tenantName,
+          roomNumber: roomData.room_number || '?',
+          roomId: roomData.id || reading.room,
+          readings: [],
+          totalPending: 0,
+          monthWise: {},
+          monthCount: 0
+        };
+      }
+      
+      const total = parseFloat(reading.total_amount) || 0;
+      const paid = parseFloat(reading.paid_amount) || 0;
+      const pending = total - paid;
+      
+      if (pending > 0) {
+        const monthKey = reading.month || reading.monthly_bill_details?.month;
+        const monthLabel = new Date(monthKey).toLocaleDateString('en-US', { 
+          month: 'short', 
+          year: '2-digit' 
+        });
+        
+        grouped[key].readings.push({
+          ...reading,
+          monthLabel: monthLabel
+        });
+        grouped[key].monthWise[monthLabel] = pending;
+        grouped[key].totalPending += pending;
+      }
+    });
+    
+    Object.values(grouped).forEach(tenant => {
+      tenant.monthCount = Object.keys(tenant.monthWise).length;
+    });
+    
+    return Object.values(grouped).filter(g => g.totalPending > 0);
+  };
+
+  const tenantData = groupAllTenants();
+  tenantData.sort((a, b) => b.totalPending - a.totalPending);
+  
+  const toggleExpand = (tenantKey) => {
+    setExpandedTenants(prev => ({
+      ...prev,
+      [tenantKey]: !prev[tenantKey]
+    }));
+  };
+
+  if (tenantData.length === 0) {
+    return (
+      <div className="pending-dues-empty">
+        <div className="empty-icon">✅</div>
+        <div className="empty-title">No Pending Dues</div>
+        <div className="empty-sub">All tenants have cleared their payments.</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="pending-dues-wrapper">
+      <div className="pending-dues-header">
+        <h5 className="pending-dues-title">
+          <FiClock size={18} /> Pending Dues Summary
+        </h5>
+        <span className="pending-dues-count">
+          {tenantData.length} Tenant{tenantData.length > 1 ? 's' : ''} with dues
+        </span>
+      </div>
+      
+      <div className="table-responsive pending-dues-table">
+        <table className="table-premium">
+          <thead>
+            <tr>
+              <th className="col-sno">S.No</th>
+              <th className="col-room">Room</th>
+              <th className="col-tenant">Tenant</th>
+              <th className="col-months">Months</th>
+              <th className="col-pending">Total Pending</th>
+              <th className="col-action">Action</th>
+              <th className="col-expand"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {tenantData.map((tenant, idx) => {
+              const tenantKey = `${tenant.tenantName}_${tenant.roomNumber}`;
+              const isExpanded = expandedTenants[tenantKey] || false;
+              const monthLabels = Object.keys(tenant.monthWise).sort();
+              
+              return (
+                <React.Fragment key={idx}>
+                  <tr className="pending-dues-row" onClick={() => toggleExpand(tenantKey)}>
+                    <td className="cell-sno">{idx + 1}</td>
+                    <td className="cell-room">
+                      <span className="room-tag">Room {tenant.roomNumber}</span>
+                    </td>
+                    <td className="cell-tenant">
+                      <strong>{tenant.tenantName}</strong>
+                    </td>
+                    <td className="cell-months">
+                      <span className={`month-badge ${tenant.monthCount > 1 ? 'multiple' : 'single'}`}>
+                        {tenant.monthCount} {tenant.monthCount > 1 ? 'Months' : 'Month'}
+                      </span>
+                    </td>
+                    <td className="cell-pending">
+                      <span className="rupee">₹</span>{tenant.totalPending.toFixed(2)}
+                    </td>
+                    <td className="cell-action">
+                      <button 
+                        className="btn-pay-all"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onPayAll(tenant);
+                        }}
+                      >
+                        <FiCreditCard size={14} /> Pay All
+                      </button>
+                    </td>
+                    <td className={`cell-expand ${isExpanded ? 'open' : ''}`}>
+                      {isExpanded ? <FiChevronUp size={18} /> : <FiChevronDown size={18} />}
+                    </td>
+                  </tr>
+                  
+                  {isExpanded && (
+                    <tr className="expandable-row">
+                      <td colSpan="7" className="expandable-cell">
+                        <div className="expandable-content">
+                          <div className="month-label">
+                            <span>📅 Month-wise Pending Details ({tenant.monthCount} {tenant.monthCount > 1 ? 'Months' : 'Month'})</span>
+                            <span className="line"></span>
+                          </div>
+                          <div className="month-grid">
+                            {monthLabels.map(month => {
+                              const amount = tenant.monthWise[month];
+                              const reading = tenant.readings.find(r => r.monthLabel === month);
+                              return (
+                                <div key={month} className="month-card">
+                                  <span className="m-name">{month}</span>
+                                  <span className="m-amount">₹{amount.toFixed(2)}</span>
+                                  <button 
+                                    className="m-pay-btn"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onPayIndividual(tenant, reading, amount);
+                                    }}
+                                  >
+                                    Pay
+                                  </button>
+                                </div>
+                              );
+                            })}
+                            <div className="month-card total">
+                              <span className="m-name">Total</span>
+                              <span className="m-amount">₹{tenant.totalPending.toFixed(2)}</span>
+                              <button 
+                                className="m-pay-all"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onPayAll(tenant);
+                                }}
+                              >
+                                Pay All
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+// ========================================
 // BILLS MAIN COMPONENT
 // ========================================
 const Bills = () => {
   const [bills, setBills] = useState([]);
   const [selectedBill, setSelectedBill] = useState(null);
   const [billDetails, setBillDetails] = useState([]);
+  const [allBillDetails, setAllBillDetails] = useState([]);
   const [loading, setLoading] = useState(true);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -544,6 +810,8 @@ const Bills = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState(null);
   const [deleteTargetMonth, setDeleteTargetMonth] = useState('');
+  const [isBulkPayment, setIsBulkPayment] = useState(false);
+  const [bulkPaymentData, setBulkPaymentData] = useState(null);
 
   useEffect(() => {
     fetchBills();
@@ -580,6 +848,29 @@ const Bills = () => {
       fetchBillDetails(selectedMonth);
     }
   }, [selectedMonth]);
+
+  useEffect(() => {
+    const fetchAllBillDetails = async () => {
+      try {
+        const allDetails = [];
+        for (const bill of bills) {
+          const response = await readingAPI.getByMonth(bill.month);
+          const readings = response.data || [];
+          allDetails.push(...readings.map(r => ({
+            ...r,
+            month: bill.month
+          })));
+        }
+        setAllBillDetails(allDetails);
+      } catch (err) {
+        console.error('Error fetching all bill details:', err);
+      }
+    };
+    
+    if (bills.length > 0) {
+      fetchAllBillDetails();
+    }
+  }, [bills]);
 
   const fetchBills = async () => {
     try {
@@ -627,13 +918,36 @@ const Bills = () => {
 
   const handlePaymentClick = (reading) => {
     setSelectedReading(reading);
+    setIsBulkPayment(false);
+    setBulkPaymentData(null);
     setShowPaymentModal(true);
   };
 
-  const handlePaymentComplete = () => {
+  const handleBulkPayAll = (tenant) => {
+    setBulkPaymentData({
+      tenantName: tenant.tenantName,
+      roomNumber: tenant.roomNumber,
+      readings: tenant.readings,
+      totalPending: tenant.totalPending
+    });
+    setIsBulkPayment(true);
+    setSelectedReading(null);
+    setShowPaymentModal(true);
+  };
+
+  const handleIndividualPay = (tenant, reading, amount) => {
+    if (reading) {
+      setSelectedReading(reading);
+      setIsBulkPayment(false);
+      setBulkPaymentData(null);
+      setShowPaymentModal(true);
+    }
+  };
+
+  const handlePaymentComplete = (amount) => {
     fetchBillDetails(selectedMonth);
     fetchBills();
-    showAlert('success', '✅ Payment processed successfully!');
+    showAlert('success', `✅ Payment of ₹${amount.toFixed(2)} processed successfully!`);
   };
 
   const handleCalculate = async (id) => {
@@ -729,27 +1043,13 @@ const Bills = () => {
     return '—';
   };
 
-  // Calculate totals for selected month
   const totalAmount = billDetails.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0);
   const totalPaid = billDetails.reduce((sum, r) => sum + (parseFloat(r.paid_amount) || 0), 0);
   const totalPending = totalAmount - totalPaid;
 
-  // 🔥 Calculate OVERALL totals from ALL bills
-  const overallTotal = bills.reduce((sum, b) => sum + (parseFloat(b.total_bill_amount) || 0), 0);
-  
-  // 🔥 Calculate OVERALL pending from ALL bills (all months combined)
-  // For this, we need to fetch all readings or use payment history
-  // Using a simpler approach - sum of all bill amounts minus all payments
   const [overallPending, setOverallPending] = useState(0);
-  const [selectedMonthPaid, setSelectedMonthPaid] = useState(0);
 
   useEffect(() => {
-    // Calculate selected month paid
-    setSelectedMonthPaid(totalPaid);
-  }, [totalPaid]);
-
-  useEffect(() => {
-    // Calculate overall pending
     const fetchOverallPending = async () => {
       try {
         const response = await billAPI.getAll();
@@ -771,22 +1071,21 @@ const Bills = () => {
     };
     
     fetchOverallPending();
-  }, []);
+  }, [bills]);
 
-  // 4 Cards for Bills Section
   const billStats = [
     { 
       icon: <FiDollarSign size={22} />, 
-      number: `₹${formatAmount(overallTotal)}`, 
-      label: 'Total Amount', 
-      change: 'Overall',
+      number: `₹${formatAmount(totalAmount)}`, 
+      label: 'This Month Total', 
+      change: 'Current Month',
       cardClass: 'card-gold' 
     },
     { 
       icon: <FiCheck size={22} />, 
-      number: `₹${formatAmount(selectedMonthPaid)}`, 
-      label: 'Received Amount', 
-      change: 'This Month',
+      number: `₹${formatAmount(totalPaid)}`, 
+      label: 'This Month Received', 
+      change: 'Current Month',
       cardClass: 'card-green' 
     },
     { 
@@ -800,7 +1099,7 @@ const Bills = () => {
       icon: <FiTrendingUp size={22} />, 
       number: `₹${formatAmount(totalPending)}`, 
       label: 'This Month Pending', 
-      change: 'Current',
+      change: 'Current Month',
       cardClass: 'card-blue' 
     },
   ];
@@ -828,7 +1127,7 @@ const Bills = () => {
         />
       )}
 
-      {/* 🔥 4 Cards - Sirf Ye 4 Cards Rahenge */}
+      {/* 4 Cards */}
       <Row className="g-3 mb-4">
         {billStats.map((stat, index) => (
           <Col md={3} sm={6} xs={6} key={index}>
@@ -848,10 +1147,10 @@ const Bills = () => {
       </Row>
 
       {/* Month Selector & Actions */}
-      {availableMonths.length > 0 && (
-        <div className="month-selector-bar">
-          <div className="month-selector">
-            <FiCalendar className="month-selector-icon" />
+      <div className="month-selector-bar">
+        <div className="month-selector">
+          <FiCalendar className="month-selector-icon" />
+          {availableMonths.length > 0 ? (
             <select 
               value={selectedMonth} 
               onChange={(e) => setSelectedMonth(e.target.value)}
@@ -863,35 +1162,38 @@ const Bills = () => {
                 </option>
               ))}
             </select>
-          </div>
-          
-          <div className="month-actions">
-            <button className="btn-primary-gradient" onClick={() => setShowModal(true)}>
-              <FiPlus size={16} /> Add New Bill
-            </button>
-            {selectedBill && (
-              <>
-                <button 
-                  className="btn-ghost btn-sm" 
-                  onClick={() => handleCalculate(selectedBill.id)}
-                  title="Calculate - This will save tenant name snapshots"
-                >
-                  <FiRefreshCw size={14} /> Calculate & Save
-                </button>
-                <button 
-                  className="btn-ghost btn-sm delete-btn-sm" 
-                  onClick={() => handleDeleteClick(selectedBill.id)}
-                  title={`Delete ${new Date(selectedBill.month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`}
-                >
-                  <FiTrash2 size={14} /> Delete
-                </button>
-              </>
-            )}
-          </div>
+          ) : (
+            <span className="month-select-placeholder">No bills yet</span>
+          )}
         </div>
-      )}
+        
+        <div className="month-actions">
+          <button className="btn-primary-gradient" onClick={() => setShowModal(true)}>
+            <FiPlus size={16} /> Add New Bill
+          </button>
+          
+          {selectedBill && availableMonths.length > 0 && (
+            <>
+              <button 
+                className="btn-ghost btn-sm" 
+                onClick={() => handleCalculate(selectedBill.id)}
+                title="Calculate - This will save tenant name snapshots"
+              >
+                <FiRefreshCw size={14} /> Calculate & Save
+              </button>
+              <button 
+                className="btn-ghost btn-sm delete-btn-sm" 
+                onClick={() => handleDeleteClick(selectedBill.id)}
+                title={`Delete ${new Date(selectedBill.month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`}
+              >
+                <FiTrash2 size={14} /> Delete
+              </button>
+            </>
+          )}
+        </div>
+      </div>
 
-      {/* Table */}
+      {/* Room-wise Bill Table */}
       <div className="table-wrap">
         {detailsLoading ? (
           <div className="text-center py-4">
@@ -902,24 +1204,36 @@ const Bills = () => {
           <div className="empty-state">
             <div className="empty-icon">📋</div>
             <div className="empty-title">No room readings found</div>
-            <div className="empty-sub">This bill has no room readings yet.</div>
+            <div className="empty-sub">
+              {availableMonths.length > 0 
+                ? 'This bill has no room readings yet.' 
+                : 'Click "Add New Bill" to create your first bill.'}
+            </div>
+            {availableMonths.length === 0 && (
+              <button 
+                className="btn-primary-gradient mt-3" 
+                onClick={() => setShowModal(true)}
+              >
+                <FiPlus size={16} /> Create First Bill
+              </button>
+            )}
           </div>
         ) : (
           <div className="bill-table-scroll">
             <table className="table-premium bill-table">
               <thead>
                 <tr>
-                  <th>#</th>
-                  <th>Room</th>
-                  <th>Tenant</th>
-                  <th>Units</th>
-                  <th>Bill</th>
-                  <th>Rent</th>
-                  <th>Total</th>
-                  <th>Paid</th>
-                  <th>Remaining</th>
-                  <th>Status</th>
-                  <th>Action</th>
+                  <th className="sno-col">#</th>
+                  <th className="room-col">Room</th>
+                  <th className="tenant-col">Tenant</th>
+                  <th className="units-col">Units</th>
+                  <th className="bill-col">Bill</th>
+                  <th className="rent-col">Rent</th>
+                  <th className="total-col">Total</th>
+                  <th className="paid-col">Paid</th>
+                  <th className="remaining-col">Remaining</th>
+                  <th className="status-col">Status</th>
+                  <th className="action-col">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -938,23 +1252,23 @@ const Bills = () => {
                   
                   return (
                     <tr key={reading.id}>
-                      <td>{index + 1}</td>
-                      <td><strong>Room {roomNumber}</strong></td>
-                      <td>{tenantName}</td>
-                      <td>{units.toFixed(2)}</td>
-                      <td>₹{electricity.toFixed(2)}</td>
-                      <td>₹{rent.toFixed(2)}</td>
-                      <td><strong style={{ color: '#6C63FF' }}>₹{total.toFixed(2)}</strong></td>
-                      <td style={{ color: '#34D399' }}>₹{paid.toFixed(2)}</td>
-                      <td style={{ color: remaining > 0 ? '#F87171' : '#34D399' }}>
+                      <td className="sno-cell">{index + 1}</td>
+                      <td className="room-cell"><strong>Room {roomNumber}</strong></td>
+                      <td className="tenant-cell">{tenantName}</td>
+                      <td className="units-cell">{units.toFixed(2)}</td>
+                      <td className="bill-cell">₹{electricity.toFixed(2)}</td>
+                      <td className="rent-cell">₹{rent.toFixed(2)}</td>
+                      <td className="total-cell"><strong style={{ color: '#6C63FF' }}>₹{total.toFixed(2)}</strong></td>
+                      <td className="paid-cell" style={{ color: '#34D399' }}>₹{paid.toFixed(2)}</td>
+                      <td className="remaining-cell" style={{ color: remaining > 0 ? '#F87171' : '#34D399' }}>
                         ₹{remaining.toFixed(2)}
                       </td>
-                      <td>
+                      <td className="status-cell">
                         <span className={`badge-status ${status.class}`}>
                           {status.label}
                         </span>
                       </td>
-                      <td>
+                      <td className="action-cell">
                         {remaining > 0 && (
                           <button 
                             className="action-btn edit-btn" 
@@ -977,6 +1291,17 @@ const Bills = () => {
         )}
       </div>
 
+      {/* Pending Dues Summary - BOTTOM */}
+      {allBillDetails.length > 0 && (
+        <div className="pending-dues-section mt-4">
+          <PendingDuesSummary 
+            allBillDetails={allBillDetails}
+            onPayAll={handleBulkPayAll}
+            onPayIndividual={handleIndividualPay}
+          />
+        </div>
+      )}
+
       <DeleteConfirmModal 
         show={showDeleteModal}
         onHide={() => setShowDeleteModal(false)}
@@ -989,6 +1314,8 @@ const Bills = () => {
         onHide={() => setShowPaymentModal(false)}
         reading={selectedReading}
         onPaymentComplete={handlePaymentComplete}
+        isBulk={isBulkPayment}
+        bulkData={bulkPaymentData}
       />
 
       <AddBillModal 
