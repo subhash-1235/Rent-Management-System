@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Spinner, Alert, Form } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { 
-  FiHome, 
-  FiDollarSign, 
-  FiCheckCircle, 
+import {
+  FiHome,
+  FiDollarSign,
+  FiCheckCircle,
   FiClock,
   FiPlus,
   FiUsers,
@@ -24,33 +24,33 @@ import './AdminDashboard.css';
 // ========================================
 const StatsCards = ({ stats }) => {
   const statItems = [
-    { 
-      icon: <FiHome size={22} />, 
-      number: stats.totalRooms || 0, 
-      label: 'Total Rooms', 
-      change: '', 
-      cardClass: 'card-gold' 
+    {
+      icon: <FiHome size={22} />,
+      number: stats.totalRooms || 0,
+      label: 'Total Rooms',
+      change: '',
+      cardClass: 'card-gold'
     },
-    { 
-      icon: <FiDollarSign size={22} />, 
-      number: `₹${(stats.overallTotal || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 
-      label: 'Total Collection', 
-      change: '', 
-      cardClass: 'card-purple' 
+    {
+      icon: <FiDollarSign size={22} />,
+      number: `₹${(stats.overallTotal || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      label: 'Total Collection',
+      change: '',
+      cardClass: 'card-purple'
     },
-    { 
-      icon: <FiCheckCircle size={22} />, 
-      number: `₹${(stats.currentMonthPaid || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 
-      label: 'This Month Received', 
-      change: '', 
-      cardClass: 'card-green' 
+    {
+      icon: <FiCheckCircle size={22} />,
+      number: `₹${(stats.currentMonthPaid || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      label: 'This Month Received',
+      change: '',
+      cardClass: 'card-green'
     },
-    { 
-      icon: <FiClock size={22} />, 
-      number: `₹${(stats.overallPending || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 
-      label: 'Total Pending', 
-      change: '', 
-      cardClass: 'card-rose' 
+    {
+      icon: <FiClock size={22} />,
+      number: `₹${(stats.overallPending || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      label: 'Total Pending',
+      change: '',
+      cardClass: 'card-rose'
     },
   ];
 
@@ -78,10 +78,10 @@ const StatsCards = ({ stats }) => {
 // ========================================
 // ROOM TABLE COMPONENT
 // ========================================
-const RoomTable = ({ rooms = [], month, onMonthChange, availableMonths = [], searchTerm = '', onSearchChange = () => {} }) => {
+const RoomTable = ({ rooms = [], month, onMonthChange, availableMonths = [], searchTerm = '', onSearchChange = () => { } }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
-  
+
   const filteredRooms = rooms.filter(room => {
     if (!searchTerm) return true;
     const term = searchTerm.toLowerCase().trim();
@@ -90,7 +90,7 @@ const RoomTable = ({ rooms = [], month, onMonthChange, availableMonths = [], sea
     const mobile = (room.tenant_mobile || '');
     return roomNumber.includes(term) || tenantName.includes(term) || mobile.includes(term);
   });
-  
+
   const totalPages = Math.ceil(filteredRooms.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -99,7 +99,7 @@ const RoomTable = ({ rooms = [], month, onMonthChange, availableMonths = [], sea
   const getStatusBadge = (isPaid, totalAmount, paidAmount) => {
     const total = parseFloat(totalAmount) || 0;
     const paid = parseFloat(paidAmount) || 0;
-    
+
     if (total === 0) {
       return { class: 'pending', label: '⏳ Pending' };
     }
@@ -132,8 +132,8 @@ const RoomTable = ({ rooms = [], month, onMonthChange, availableMonths = [], sea
         <div className="table-header-right">
           <div className="month-filter">
             <FiCalendar size={14} className="filter-icon" />
-            <select 
-              value={month} 
+            <select
+              value={month}
               onChange={(e) => onMonthChange(e.target.value)}
               className="month-select"
             >
@@ -179,7 +179,7 @@ const RoomTable = ({ rooms = [], month, onMonthChange, availableMonths = [], sea
                 const remaining = total - paid;
                 const status = getStatusBadge(room.is_paid, total, paid);
                 const mobile = getMobileNumber(room);
-                
+
                 return (
                   <tr key={room.id || index}>
                     <td>{startIndex + index + 1}</td>
@@ -209,7 +209,7 @@ const RoomTable = ({ rooms = [], month, onMonthChange, availableMonths = [], sea
 
       {totalPages > 1 && (
         <div className="pagination-custom">
-          <button 
+          <button
             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
           >
@@ -218,7 +218,7 @@ const RoomTable = ({ rooms = [], month, onMonthChange, availableMonths = [], sea
           <span className="page-info">
             Page {currentPage} of {totalPages}
           </span>
-          <button 
+          <button
             onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
             disabled={currentPage === totalPages}
           >
@@ -233,15 +233,15 @@ const RoomTable = ({ rooms = [], month, onMonthChange, availableMonths = [], sea
 // ========================================
 // PENDING DUES TABLE
 // ========================================
-const PendingDuesTable = ({ pendingDues = [], searchTerm = '', onSearchChange = () => {} }) => {
+const PendingDuesTable = ({ pendingDues = [], searchTerm = '', onSearchChange = () => { } }) => {
   const [expandedTenants, setExpandedTenants] = useState({});
   const [filterMonth, setFilterMonth] = useState('all');
 
   const filteredDues = pendingDues.filter(due => {
     const monthMatch = filterMonth === 'all' || due.month === filterMonth;
-    const searchMatch = !searchTerm || 
-                        due.tenant_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        due.room_number?.toString().includes(searchTerm);
+    const searchMatch = !searchTerm ||
+      due.tenant_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      due.room_number?.toString().includes(searchTerm);
     return monthMatch && searchMatch;
   });
 
@@ -413,7 +413,7 @@ const PendingDuesTable = ({ pendingDues = [], searchTerm = '', onSearchChange = 
                       <td colSpan="2" style={{ textAlign: 'right', fontWeight: 600 }}>
                         Total for {group.tenant_name}:
                       </td>
-                      <td style={{ color: '#34D399',textAlign: 'center' }}>₹{totalPaidAmt.toFixed(2)}</td>
+                      <td style={{ color: '#34D399', textAlign: 'center' }}>₹{totalPaidAmt.toFixed(2)}</td>
                       <td style={{ color: '#F87171', fontWeight: 700 }}>₹{totalDue.toFixed(2)}</td>
                       <td></td>
                     </tr>
@@ -427,9 +427,9 @@ const PendingDuesTable = ({ pendingDues = [], searchTerm = '', onSearchChange = 
               <td colSpan="4" style={{ textAlign: 'right', fontWeight: 700 }}>
                 Grand Total:
               </td>
-              <td style={{ fontWeight: 600,textAlign: 'center' }}>₹{totalBill.toFixed(2)}</td>
-              <td style={{ color: '#34D399',textAlign: 'center', fontWeight: 600 }}>₹{totalPaid.toFixed(2)}</td>
-              <td style={{ color: '#F87171',textAlign: 'center', fontWeight: 700, fontSize: '16px' }}>
+              <td style={{ fontWeight: 600, textAlign: 'center' }}>₹{totalBill.toFixed(2)}</td>
+              <td style={{ color: '#34D399', textAlign: 'center', fontWeight: 600 }}>₹{totalPaid.toFixed(2)}</td>
+              <td style={{ color: '#F87171', textAlign: 'center', fontWeight: 700, fontSize: '16px' }}>
                 ₹{totalPending.toFixed(2)}
               </td>
               <td></td>
@@ -476,42 +476,43 @@ const AdminDashboard = () => {
   const loadAllData = async () => {
     try {
       setLoading(true);
-      
+
       // 1. Get all bills
       const billsRes = await billAPI.getAll();
       const bills = billsRes.data || [];
-      
+
       // 2. Get all rooms
       const roomsRes = await roomAPI.getAll();
       const allRooms = roomsRes.data || [];
-      const activeRooms = allRooms.filter(r => r.status === 'occupied');
-      
+      const totalRoomsCount = allRooms.length;
+
+
       // 3. Get all readings for all bills and calculate pending
       let overallTotalBill = 0;
       let overallTotalPaid = 0;
       let allPendingDues = [];
       let monthMap = {};
-      
+
       for (const bill of bills) {
         const readingsRes = await readingAPI.getByMonth(bill.month);
         const readings = readingsRes.data || [];
-        const monthLabel = new Date(bill.month).toLocaleDateString('en-US', { 
-          month: 'short', 
-          year: '2-digit' 
+        const monthLabel = new Date(bill.month).toLocaleDateString('en-US', {
+          month: 'short',
+          year: '2-digit'
         });
-        
+
         for (const reading of readings) {
           const total = parseFloat(reading.total_amount) || 0;
           const paid = parseFloat(reading.paid_amount) || 0;
           const pending = total - paid;
-          
+
           overallTotalBill += total;
           overallTotalPaid += paid;
-          
+
           // Get tenant name
           const tenantName = reading.tenant_name_snapshot || reading.room_details?.tenant_name || '—';
           const roomNumber = reading.room_details?.room_number || reading.room || '?';
-          
+
           // 🔥 Track pending dues
           if (pending > 0 && tenantName !== '—') {
             allPendingDues.push({
@@ -525,49 +526,49 @@ const AdminDashboard = () => {
             });
           }
         }
-        
+
         // Track months for dropdown
         monthMap[bill.month] = {
           value: bill.month,
-          label: new Date(bill.month).toLocaleDateString('en-US', { 
-            month: 'long', 
-            year: 'numeric' 
+          label: new Date(bill.month).toLocaleDateString('en-US', {
+            month: 'long',
+            year: 'numeric'
           })
         };
       }
-      
+
       // 4. Set available months
-      const sortedMonths = Object.values(monthMap).sort((a, b) => 
+      const sortedMonths = Object.values(monthMap).sort((a, b) =>
         new Date(b.value) - new Date(a.value)
       );
       setAvailableMonths(sortedMonths);
-      
+
       if (sortedMonths.length > 0 && !selectedMonth) {
         setSelectedMonth(sortedMonths[0].value);
       }
-      
+
       // 5. Calculate current month paid
       const currentMonth = sortedMonths.length > 0 ? sortedMonths[0].value : '';
       let currentMonthPaid = 0;
       if (currentMonth) {
         const currentReadings = await readingAPI.getByMonth(currentMonth);
-        currentMonthPaid = (currentReadings.data || []).reduce((sum, r) => 
+        currentMonthPaid = (currentReadings.data || []).reduce((sum, r) =>
           sum + (parseFloat(r.paid_amount) || 0), 0
         );
       }
-      
+
       // 6. Set stats
       setStats({
-        totalRooms: activeRooms.length,
+        totalRooms: totalRoomsCount,
         overallTotal: overallTotalPaid,
         currentMonthPaid: currentMonthPaid,
         overallPending: overallTotalBill - overallTotalPaid,
         month: currentMonth,
       });
-      
+
       // 7. Set pending dues
       setPendingDues(allPendingDues);
-      
+
       setError(null);
     } catch (err) {
       console.error('Error loading data:', err);
@@ -581,7 +582,7 @@ const AdminDashboard = () => {
     try {
       const readingsRes = await readingAPI.getByMonth(month);
       const readings = readingsRes.data || [];
-      
+
       const formattedRooms = readings.map(reading => ({
         id: reading.id,
         room_number: reading.room_details?.room_number || reading.room || '?',
@@ -594,7 +595,7 @@ const AdminDashboard = () => {
         paid_amount: reading.paid_amount || 0,
         is_paid: reading.is_paid || false,
       }));
-      
+
       setRooms(formattedRooms);
     } catch (err) {
       console.error('Error fetching month data:', err);
@@ -622,15 +623,15 @@ const AdminDashboard = () => {
 
   if (error) {
     return (
-      <Alert variant="danger" className="mt-4" style={{ 
+      <Alert variant="danger" className="mt-4" style={{
         background: 'rgba(248, 113, 113, 0.08)',
         border: '1px solid rgba(248, 113, 113, 0.1)',
         borderRadius: '10px',
         color: '#F87171'
       }}>
         {error}
-        <button 
-          className="btn-primary-gradient ms-3" 
+        <button
+          className="btn-primary-gradient ms-3"
           onClick={loadAllData}
           style={{ padding: '4px 16px', fontSize: '12px' }}
         >
@@ -663,8 +664,8 @@ const AdminDashboard = () => {
         </button>
       </div>
 
-      <RoomTable 
-        rooms={rooms} 
+      <RoomTable
+        rooms={rooms}
         month={selectedMonth}
         onMonthChange={handleMonthChange}
         availableMonths={availableMonths}
@@ -672,7 +673,7 @@ const AdminDashboard = () => {
         onSearchChange={setSearchTerm}
       />
 
-      <PendingDuesTable 
+      <PendingDuesTable
         pendingDues={pendingDues}
         searchTerm={pendingSearchTerm}
         onSearchChange={setPendingSearchTerm}

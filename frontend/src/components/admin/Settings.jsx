@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Form, Button, Spinner, Alert, Modal } from 'react-bootstrap';
-import { FiSettings, FiSave, FiUser, FiShield, FiClock, FiGlobe, FiMoon, FiSun, FiDollarSign, FiSmartphone, FiCreditCard, FiImage, FiUpload, FiTrash2 } from 'react-icons/fi';
+import { FiSettings, FiSave, FiUser, FiGlobe, FiDollarSign, FiSmartphone, FiCreditCard, FiImage, FiUpload, FiTrash2, FiShield, FiClock } from 'react-icons/fi';
 import { FaQrcode } from 'react-icons/fa';
 import { qrAPI } from '../../services/api';
 import './Settings.css';
@@ -25,14 +25,12 @@ const Settings = () => {
   const [generalSettings, setGeneralSettings] = useState({
     currency: 'INR',
     language: 'en',
-    theme: 'dark',
   });
 
   useEffect(() => {
     fetchSettings();
     loadGeneralSettings();
     loadAccountSettings();
-    applyTheme();
   }, []);
 
   const fetchSettings = async () => {
@@ -59,10 +57,10 @@ const Settings = () => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        setGeneralSettings(parsed);
-        if (parsed.theme) {
-          document.documentElement.setAttribute('data-theme', parsed.theme);
-        }
+        setGeneralSettings({
+          currency: parsed.currency || 'INR',
+          language: parsed.language || 'en',
+        });
       } catch (e) {
         console.error('Error loading general settings:', e);
       }
@@ -84,11 +82,6 @@ const Settings = () => {
         console.error('Error loading account settings:', e);
       }
     }
-  };
-
-  const applyTheme = () => {
-    const theme = generalSettings.theme || 'dark';
-    document.documentElement.setAttribute('data-theme', theme);
   };
 
   const saveGeneralSettings = (settings) => {
@@ -117,7 +110,6 @@ const Settings = () => {
       }
       
       saveGeneralSettings(generalSettings);
-      applyTheme();
       saveAccountSettings(accountSettings);
       
       if (accountSettings.new_password && accountSettings.new_password.length > 0) {
@@ -151,12 +143,7 @@ const Settings = () => {
 
   const handleGeneralChange = (e) => {
     const { name, value } = e.target;
-    const newSettings = { ...generalSettings, [name]: value };
-    setGeneralSettings(newSettings);
-    
-    if (name === 'theme') {
-      document.documentElement.setAttribute('data-theme', value);
-    }
+    setGeneralSettings({ ...generalSettings, [name]: value });
   };
 
   const handleAccountChange = (e) => {
@@ -265,28 +252,24 @@ const Settings = () => {
       icon: <FaQrcode size={22} />, 
       number: qrSettings?.upi_id ? '✅ Active' : '❌ Not Set', 
       label: 'QR Code Status', 
-      change: '', 
       cardClass: 'card-gold' 
     },
     { 
-      icon: <FiGlobe size={22} />, 
+      icon: <FiDollarSign size={22} />, 
       number: generalSettings.currency || 'INR', 
-      label: 'Currency', 
-      change: '', 
-      cardClass: 'card-blue' 
-    },
-    { 
-      icon: generalSettings.theme === 'dark' ? <FiMoon size={22} /> : <FiSun size={22} />, 
-      number: generalSettings.theme === 'dark' ? 'Dark Mode' : 'Light Mode', 
-      label: 'Theme', 
-      change: '', 
+      label: 'Default Currency', 
       cardClass: 'card-green' 
     },
     { 
-      icon: <FiSmartphone size={22} />, 
-      number: 'v2.0', 
-      label: 'App Version', 
-      change: '', 
+      icon: <FiGlobe size={22} />, 
+      number: generalSettings.language === 'en' ? 'English' : 'हिंदी', 
+      label: 'Default Language', 
+      cardClass: 'card-blue' 
+    },
+    { 
+      icon: <FiShield size={22} />, 
+      number: '🔒 Secure', 
+      label: 'Security Status', 
       cardClass: 'card-purple' 
     },
   ];
@@ -338,7 +321,6 @@ const Settings = () => {
             <div className={`stat-card ${stat.cardClass}`}>
               <div className="stat-left">
                 <div className="stat-icon">{stat.icon}</div>
-                {stat.change && <span className="stat-change">{stat.change}</span>}
               </div>
               <div className="stat-right">
                 <div className="stat-number" style={{ fontSize: stat.number.length > 10 ? '16px' : '20px' }}>
@@ -475,10 +457,10 @@ const Settings = () => {
                     color: 'var(--text-primary)',
                   }}
                 >
-                  <option value="INR" style={{ background: '#1A2234' }}>₹ INR (Indian Rupee)</option>
-                  <option value="USD" style={{ background: '#1A2234' }}>$ USD (US Dollar)</option>
-                  <option value="EUR" style={{ background: '#1A2234' }}>€ EUR (Euro)</option>
-                  <option value="GBP" style={{ background: '#1A2234' }}>£ GBP (British Pound)</option>
+                  <option value="INR">₹ INR (Indian Rupee)</option>
+                  <option value="USD">$ USD (US Dollar)</option>
+                  <option value="EUR">€ EUR (Euro)</option>
+                  <option value="GBP">£ GBP (British Pound)</option>
                 </Form.Select>
               </Form.Group>
               <Form.Group className="mb-3">
@@ -495,26 +477,8 @@ const Settings = () => {
                     color: 'var(--text-primary)',
                   }}
                 >
-                  <option value="en" style={{ background: '#1A2234' }}>🇬🇧 English</option>
-                  <option value="hi" style={{ background: '#1A2234' }}>🇮🇳 हिंदी (Hindi)</option>
-                </Form.Select>
-              </Form.Group>
-              <Form.Group>
-                <Form.Label>Default Theme</Form.Label>
-                <Form.Select 
-                  name="theme"
-                  value={generalSettings.theme}
-                  onChange={handleGeneralChange}
-                  style={{
-                    background: 'var(--bg-glass)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '10px',
-                    padding: '10px 14px',
-                    color: 'var(--text-primary)',
-                  }}
-                >
-                  <option value="dark" style={{ background: '#1A2234' }}>🌙 Dark</option>
-                  <option value="light" style={{ background: '#1A2234' }}>☀️ Light</option>
+                  <option value="en">🇬🇧 English</option>
+                  <option value="hi">🇮🇳 हिंदी (Hindi)</option>
                 </Form.Select>
               </Form.Group>
             </Form>
@@ -523,128 +487,97 @@ const Settings = () => {
       </Row>
 
       <Row className="g-4 mt-2">
-        <Col md={6}>
+        <Col md={12}>
           <div className="settings-card">
             <h5 className="settings-card-title">
               <FiUser size={20} />
               Account Settings
             </h5>
             <Form className="settings-form">
-              <Form.Group className="mb-3">
-                <Form.Label>Admin Name</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="admin_name"
-                  placeholder="Enter admin name"
-                  value={accountSettings.admin_name}
-                  onChange={handleAccountChange}
-                  style={{
-                    background: 'var(--bg-glass)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '10px',
-                    padding: '10px 14px',
-                    color: 'var(--text-primary)',
-                  }}
-                />
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Admin Email</Form.Label>
-                <Form.Control
-                  type="email"
-                  name="admin_email"
-                  placeholder="Enter admin email"
-                  value={accountSettings.admin_email}
-                  onChange={handleAccountChange}
-                  style={{
-                    background: 'var(--bg-glass)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '10px',
-                    padding: '10px 14px',
-                    color: 'var(--text-primary)',
-                  }}
-                />
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>New Password</Form.Label>
-                <Form.Control
-                  type="password"
-                  name="new_password"
-                  placeholder="Enter new password"
-                  value={accountSettings.new_password}
-                  onChange={handleAccountChange}
-                  style={{
-                    background: 'var(--bg-glass)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '10px',
-                    padding: '10px 14px',
-                    color: 'var(--text-primary)',
-                  }}
-                />
-              </Form.Group>
-              <Form.Group>
-                <Form.Label>Confirm Password</Form.Label>
-                <Form.Control
-                  type="password"
-                  name="confirm_password"
-                  placeholder="Confirm new password"
-                  value={accountSettings.confirm_password}
-                  onChange={handleAccountChange}
-                  style={{
-                    background: 'var(--bg-glass)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '10px',
-                    padding: '10px 14px',
-                    color: 'var(--text-primary)',
-                  }}
-                />
-                <Form.Text className="text-muted">
-                  Leave blank to keep current password
-                </Form.Text>
-              </Form.Group>
+              <Row>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Admin Name</Form.Label>
+                    <Form.Control
+                      type="text"
+                      name="admin_name"
+                      placeholder="Enter admin name"
+                      value={accountSettings.admin_name}
+                      onChange={handleAccountChange}
+                      style={{
+                        background: 'var(--bg-glass)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '10px',
+                        padding: '10px 14px',
+                        color: 'var(--text-primary)',
+                      }}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Admin Email</Form.Label>
+                    <Form.Control
+                      type="email"
+                      name="admin_email"
+                      placeholder="Enter admin email"
+                      value={accountSettings.admin_email}
+                      onChange={handleAccountChange}
+                      style={{
+                        background: 'var(--bg-glass)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '10px',
+                        padding: '10px 14px',
+                        color: 'var(--text-primary)',
+                      }}
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+              <Row>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>New Password</Form.Label>
+                    <Form.Control
+                      type="password"
+                      name="new_password"
+                      placeholder="Enter new password"
+                      value={accountSettings.new_password}
+                      onChange={handleAccountChange}
+                      style={{
+                        background: 'var(--bg-glass)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '10px',
+                        padding: '10px 14px',
+                        color: 'var(--text-primary)',
+                      }}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Confirm Password</Form.Label>
+                    <Form.Control
+                      type="password"
+                      name="confirm_password"
+                      placeholder="Confirm new password"
+                      value={accountSettings.confirm_password}
+                      onChange={handleAccountChange}
+                      style={{
+                        background: 'var(--bg-glass)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '10px',
+                        padding: '10px 14px',
+                        color: 'var(--text-primary)',
+                      }}
+                    />
+                    <Form.Text className="text-muted">
+                      Leave blank to keep current password
+                    </Form.Text>
+                  </Form.Group>
+                </Col>
+              </Row>
             </Form>
-          </div>
-        </Col>
-
-        <Col md={6}>
-          <div className="settings-card">
-            <h5 className="settings-card-title">
-              <FiShield size={20} />
-              Security & System
-            </h5>
-            <div className="security-info">
-              <div className="security-item">
-                <div className="security-icon">🔒</div>
-                <div className="security-details">
-                  <div className="security-label">Authentication</div>
-                  <div className="security-value">JWT Token Based</div>
-                </div>
-                <span className="security-status secure">✅ Secure</span>
-              </div>
-              <div className="security-item">
-                <div className="security-icon">🛡️</div>
-                <div className="security-details">
-                  <div className="security-label">Data Encryption</div>
-                  <div className="security-value">AES-256</div>
-                </div>
-                <span className="security-status secure">✅ Active</span>
-              </div>
-              <div className="security-item">
-                <div className="security-icon">📊</div>
-                <div className="security-details">
-                  <div className="security-label">Database</div>
-                  <div className="security-value">SQLite</div>
-                </div>
-                <span className="security-status info">🔄 Active</span>
-              </div>
-              <div className="security-item">
-                <div className="security-icon">⏰</div>
-                <div className="security-details">
-                  <div className="security-label">Session Timeout</div>
-                  <div className="security-value">24 Hours</div>
-                </div>
-                <span className="security-status info">⏳ Active</span>
-              </div>
-            </div>
           </div>
         </Col>
       </Row>
