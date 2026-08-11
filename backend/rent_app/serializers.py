@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
 from .models import (
     Room, MonthlyBill, RoomMeterReading, 
-    PaymentHistory, QRCodeSettings, TenantHistory
+    PaymentHistory, QRCodeSettings, TenantHistory, OTP, Tenant
 )
 
 class UserSerializer(serializers.ModelSerializer):
@@ -100,16 +101,9 @@ class PaymentHistorySerializer(serializers.ModelSerializer):
 
 
 class QRCodeSettingsSerializer(serializers.ModelSerializer):
-    qr_code_url = serializers.SerializerMethodField()
-    
     class Meta:
         model = QRCodeSettings
         fields = '__all__'
-    
-    def get_qr_code_url(self, obj):
-        if obj.qr_code_image:
-            return obj.qr_code_image.url
-        return None
 
 
 class TenantHistorySerializer(serializers.ModelSerializer):
@@ -132,3 +126,97 @@ class TenantHistorySerializer(serializers.ModelSerializer):
     
     def get_is_active(self, obj):
         return obj.move_out_date is None
+
+
+# ========================================
+# OTP Serializers
+# ========================================
+
+class OTPSendSerializer(serializers.Serializer):
+    """Serializer for sending OTP"""
+    email = serializers.EmailField(required=True, help_text="Email address to send OTP")
+
+
+class OTPVerifySerializer(serializers.Serializer):
+    """Serializer for verifying OTP"""
+    email = serializers.EmailField(required=True)
+    otp = serializers.CharField(max_length=6, required=True, help_text="6-digit OTP")
+
+
+class OTPResendSerializer(serializers.Serializer):
+    """Serializer for resending OTP"""
+    email = serializers.EmailField(required=True)
+
+
+class CheckEmailSerializer(serializers.Serializer):
+    """Serializer for checking if email exists"""
+    email = serializers.EmailField(required=True)
+
+
+class OTPSerializer(serializers.ModelSerializer):
+    """Serializer for OTP model"""
+    is_expired = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = OTP
+        fields = ['id', 'email', 'otp', 'created_at', 'is_verified', 'is_expired']
+    
+    def get_is_expired(self, obj):
+        return obj.is_expired()
+
+
+# ========================================
+# 🔥 NEW: Tenant Serializers
+# ========================================
+
+class TenantSerializer(serializers.ModelSerializer):
+    """Serializer for Tenant model"""
+    room_number = serializers.IntegerField(source='room.room_number', read_only=True)
+    room_rent = serializers.DecimalField(source='room.room_rent', max_digits=10, decimal_places=2, read_only=True)
+    room_details = RoomSerializer(source='room', read_only=True)
+    
+    class Meta:
+        model = Tenant
+        fields = [
+            'id', 'name', 'mobile', 'email', 
+            'room_number', 'room_rent', 'room_details',
+            'is_registered', 'registered_at', 'last_login',
+            'is_active', 'created_at'
+        ]
+
+
+class TenantRegisterSerializer(serializers.Serializer):
+    """Serializer for tenant registration"""
+    mobile = serializers.CharField(max_length=15, required=True)
+    name = serializers.CharField(max_length=100, required=True)
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(min_length=6, required=True, write_only=True)
+    otp = serializers.CharField(max_length=6, required=True)
+
+
+class TenantLoginSerializer(serializers.Serializer):
+    """Serializer for tenant login"""
+    mobile = serializers.CharField(max_length=15, required=True)
+    password = serializers.CharField(required=True, write_only=True)
+
+
+class TenantCheckMobileSerializer(serializers.Serializer):
+    """Serializer for checking if mobile exists"""
+    mobile = serializers.CharField(max_length=15, required=True)
+
+
+class TenantProfileUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for updating tenant profile"""
+    class Meta:
+        model = Tenant
+        fields = ['name', 'email']
+        extra_kwargs = {
+            'name': {'required': False},
+            'email': {'required': False},
+        }
+
+
+class TenantChangePasswordSerializer(serializers.Serializer):
+    """Serializer for changing tenant password"""
+    old_password = serializers.CharField(required=True, write_only=True)
+    new_password = serializers.CharField(min_length=6, required=True, write_only=True)

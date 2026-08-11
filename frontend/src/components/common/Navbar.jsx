@@ -8,6 +8,12 @@ import {
   FiBell, 
   FiGlobe,
   FiHome,
+  FiGrid,
+  FiDollarSign,
+  FiClock,
+  FiUsers,
+  FiSettings,
+  FiUserCheck,
   FiLogOut
 } from 'react-icons/fi';
 import './Navbar.css';
@@ -16,9 +22,33 @@ const NavigationBar = ({ toggleSidebar }) => {
   const location = useLocation();
   const [theme, setTheme] = useState('dark');
   const [language, setLanguage] = useState('en');
-  const [showDropdown, setShowDropdown] = useState(false);
   const { logout } = useAuth();
   const navigate = useNavigate();
+
+  // Get page icon based on current path
+  const getPageIcon = () => {
+    const path = location.pathname;
+    
+    if (path === '/' || path === '/dashboard') {
+      return <FiHome className="page-icon icon-dashboard" />;
+    }
+    if (path === '/rooms') {
+      return <FiGrid className="page-icon icon-rooms" />;
+    }
+    if (path === '/bills') {
+      return <FiDollarSign className="page-icon icon-bills" />;
+    }
+    if (path === '/history') {
+      return <FiClock className="page-icon icon-history" />;
+    }
+    if (path === '/all-tenants') {
+      return <FiUserCheck className="page-icon icon-tenants" />;
+    }
+    if (path === '/settings') {
+      return <FiSettings className="page-icon icon-settings" />;
+    }
+    return <FiHome className="page-icon icon-dashboard" />;
+  };
 
   // Get page title based on current path
   const getPageTitle = () => {
@@ -62,26 +92,26 @@ const NavigationBar = ({ toggleSidebar }) => {
     <nav className="navbar-top">
       <div className="navbar-left">
         <button className="navbar-toggle" onClick={toggleSidebar}>
-          <FiMenu size={20} />
+          <FiMenu size={24} />
         </button>
         <h1 className="page-title">
-          <FiHome size={20} className="page-icon" />
-          {getPageTitle()}
+          {getPageIcon()}
+          <span>{getPageTitle()}</span>
         </h1>
       </div>
 
       <div className="navbar-right">
         <button className="lang-toggle" onClick={toggleLanguage} title={language === 'en' ? 'Switch to Hindi' : 'Switch to English'}>
-          <FiGlobe size={16} />
+          <FiGlobe size={18} className="lang-icon" />
           <span>{language === 'en' ? 'English' : 'हिंदी'}</span>
         </button>
 
         <button className="theme-toggle" onClick={toggleTheme}>
-          {theme === 'dark' ? <FiSun size={20} /> : <FiMoon size={20} />}
+          {theme === 'dark' ? <FiSun size={22} className="sun-icon" /> : <FiMoon size={22} className="moon-icon" />}
         </button>
 
-        <button className="theme-toggle" style={{ position: 'relative' }}>
-          <FiBell size={20} />
+        <button className="notification-toggle" style={{ position: 'relative' }}>
+          <FiBell size={22} className="bell-icon" />
           <span className="notification-dot" />
         </button>
       </div>

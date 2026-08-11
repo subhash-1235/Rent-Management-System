@@ -158,7 +158,7 @@ const DeleteConfirmModal = ({ show, onHide, onConfirm, roomNumber }) => {
 };
 
 // ========================================
-// ADD ROOM MODAL - COMPLETE FIXED
+// ADD ROOM MODAL - WITH BACKEND AADHAR
 // ========================================
 const AddRoomModal = ({ show, onHide, onRoomAdded, rooms }) => {
   const [formData, setFormData] = useState({
@@ -178,7 +178,6 @@ const AddRoomModal = ({ show, onHide, onRoomAdded, rooms }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Reset form when modal opens
   useEffect(() => {
     if (show) {
       setFormData({
@@ -232,7 +231,7 @@ const AddRoomModal = ({ show, onHide, onRoomAdded, rooms }) => {
     setLoading(true);
     setError(null);
 
-    // 🔥 ALL FIELDS REQUIRED - Check everything
+    // Validate all required fields
     if (!formData.room_number) {
       setError('⚠️ Room Number is required.');
       setLoading(false);
@@ -258,6 +257,21 @@ const AddRoomModal = ({ show, onHide, onRoomAdded, rooms }) => {
       setLoading(false);
       return;
     }
+    if (!formData.tenant_email || formData.tenant_email.trim() === '') {
+      setError('⚠️ Email is required.');
+      setLoading(false);
+      return;
+    }
+    if (!formData.move_in_date) {
+      setError('⚠️ Move-in Date is required.');
+      setLoading(false);
+      return;
+    }
+    if (!formData.address || formData.address.trim() === '') {
+      setError('⚠️ Address is required.');
+      setLoading(false);
+      return;
+    }
     if (!formData.aadhar_front) {
       setError('⚠️ Aadhar Card Front side is required.');
       setLoading(false);
@@ -269,41 +283,61 @@ const AddRoomModal = ({ show, onHide, onRoomAdded, rooms }) => {
       return;
     }
 
-    const existingRoom = rooms.find(r => r.room_number === parseInt(formData.room_number));
+    // 🔥 FIX: Sirf active rooms mein check karo
+    const existingRoom = rooms.find(r => 
+      r.room_number === parseInt(formData.room_number) && 
+      r.is_active === true
+    );
+    
     if (existingRoom) {
-      if (existingRoom.tenant_name && existingRoom.tenant_name !== 'N/A' && existingRoom.tenant_name !== '') {
-        setError(`⚠️ Room ${formData.room_number} already has a tenant: ${existingRoom.tenant_name}`);
-        setLoading(false);
-        return;
-      } else {
-        setError(`⚠️ Room ${formData.room_number} already exists. Please use Edit to update.`);
-        setLoading(false);
-        return;
-      }
+      setError(`⚠️ Room ${formData.room_number} is already occupied. Please use a different room number.`);
+      setLoading(false);
+      return;
     }
 
     try {
+      // Step 1: Create room
       const data = {
-        ...formData,
-        room_rent: parseFloat(formData.room_rent),
         room_number: parseInt(formData.room_number),
+        tenant_name: formData.tenant_name.trim(),
+        tenant_mobile: formData.tenant_mobile.trim(),
+        tenant_email: formData.tenant_email.trim(),
+        room_rent: parseFloat(formData.room_rent),
         move_in_date: formData.move_in_date || null,
+        address: formData.address.trim(),
+        is_active: true,
+        is_deleted: false,
       };
+
+      console.log('📤 Sending room data:', data);
+
       const response = await roomAPI.create(data);
       const roomId = response.data.id;
       
-      const savedAadhar = JSON.parse(localStorage.getItem('room_aadhar_data') || '{}');
-      savedAadhar[roomId] = {
-        aadhar_front: formData.aadhar_front_preview,
-        aadhar_back: formData.aadhar_back_preview,
-      };
-      localStorage.setItem('room_aadhar_data', JSON.stringify(savedAadhar));
+      // Step 2: Upload Aadhar to backend
+      if (formData.aadhar_front_preview || formData.aadhar_back_preview) {
+        await roomAPI.uploadAadhar(roomId, {
+          aadhar_front: formData.aadhar_front_preview || null,
+          aadhar_back: formData.aadhar_back_preview || null,
+        });
+        console.log('✅ Aadhar uploaded to backend for room:', roomId);
+      }
       
       onRoomAdded();
       onHide();
     } catch (err) {
       console.error('Error adding room:', err);
-      setError('Failed to add room. Please try again.');
+      console.error('Error response:', err.response?.data);
+      
+      if (err.response?.data?.room_number) {
+        setError(`⚠️ Room Number: ${err.response.data.room_number[0]}`);
+      } else if (err.response?.data?.non_field_errors) {
+        setError(`⚠️ ${err.response.data.non_field_errors[0]}`);
+      } else if (err.response?.data?.detail) {
+        setError(`⚠️ ${err.response.data.detail}`);
+      } else {
+        setError('⚠️ Failed to add room. Please check all fields and try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -463,7 +497,6 @@ const AddRoomModal = ({ show, onHide, onRoomAdded, rooms }) => {
                   <Form.Control
                     type="date"
                     name="move_in_date"
-                    placeholder="dd/mm/yyyy"
                     className="form-control"
                     style={{
                       background: 'var(--bg-glass)',
@@ -624,7 +657,7 @@ const AddRoomModal = ({ show, onHide, onRoomAdded, rooms }) => {
 };
 
 // ========================================
-// EDIT ROOM MODAL
+// EDIT ROOM MODAL - WITH BACKEND AADHAR
 // ========================================
 const EditRoomModal = ({ show, onHide, onRoomUpdated, room, rooms }) => {
   const [formData, setFormData] = useState({
@@ -646,23 +679,41 @@ const EditRoomModal = ({ show, onHide, onRoomUpdated, room, rooms }) => {
 
   useEffect(() => {
     if (room) {
-      const savedAadhar = JSON.parse(localStorage.getItem('room_aadhar_data') || '{}');
-      const aadharData = savedAadhar[room.id] || {};
-      
-      setFormData({
-        room_number: room.room_number || '',
-        tenant_name: room.tenant_name || '',
-        tenant_mobile: room.tenant_mobile || '',
-        tenant_email: room.tenant_email || '',
-        room_rent: room.room_rent || '',
-        move_in_date: room.move_in_date || '',
-        address: room.address || '',
-        aadhar_front: null,
-        aadhar_back: null,
-        aadhar_front_preview: aadharData.aadhar_front || null,
-        aadhar_back_preview: aadharData.aadhar_back || null,
-        is_active: room.is_active !== undefined ? room.is_active : true,
-      });
+      // Fetch Aadhar from backend
+      const fetchAadhar = async () => {
+        try {
+          const response = await roomAPI.getAadhar(room.id);
+          setFormData(prev => ({
+            ...prev,
+            room_number: room.room_number || '',
+            tenant_name: room.tenant_name || '',
+            tenant_mobile: room.tenant_mobile || '',
+            tenant_email: room.tenant_email || '',
+            room_rent: room.room_rent || '',
+            move_in_date: room.move_in_date || '',
+            address: room.address || '',
+            aadhar_front_preview: response.data.aadhar_front || null,
+            aadhar_back_preview: response.data.aadhar_back || null,
+            is_active: room.is_active !== undefined ? room.is_active : true,
+          }));
+        } catch (err) {
+          console.error('Error fetching Aadhar:', err);
+          setFormData(prev => ({
+            ...prev,
+            room_number: room.room_number || '',
+            tenant_name: room.tenant_name || '',
+            tenant_mobile: room.tenant_mobile || '',
+            tenant_email: room.tenant_email || '',
+            room_rent: room.room_rent || '',
+            move_in_date: room.move_in_date || '',
+            address: room.address || '',
+            aadhar_front_preview: null,
+            aadhar_back_preview: null,
+            is_active: room.is_active !== undefined ? room.is_active : true,
+          }));
+        }
+      };
+      fetchAadhar();
     }
   }, [room]);
 
@@ -714,41 +765,39 @@ const EditRoomModal = ({ show, onHide, onRoomUpdated, room, rooms }) => {
       setLoading(false);
       return;
     }
-    if (!formData.aadhar_front_preview) {
-      setError('⚠️ Aadhar Card Front side is required.');
-      setLoading(false);
-      return;
-    }
-    if (!formData.aadhar_back_preview) {
-      setError('⚠️ Aadhar Card Back side is required.');
-      setLoading(false);
-      return;
-    }
 
+    // 🔥 FIX: Sirf active rooms mein check karo
     if (parseInt(formData.room_number) !== room.room_number) {
-      const existingRoom = rooms.find(r => r.room_number === parseInt(formData.room_number));
+      const existingRoom = rooms.find(r => 
+        r.room_number === parseInt(formData.room_number) && 
+        r.is_active === true
+      );
       if (existingRoom) {
-        setError(`⚠️ Room ${formData.room_number} already exists. Please use a different number.`);
+        setError(`⚠️ Room ${formData.room_number} is already occupied. Please use a different room number.`);
         setLoading(false);
         return;
       }
     }
 
     try {
+      // Step 1: Update room
       const data = {
         ...formData,
         room_rent: parseFloat(formData.room_rent),
         room_number: parseInt(formData.room_number),
         move_in_date: formData.move_in_date || null,
+        is_active: formData.is_active,
       };
       await roomAPI.update(room.id, data);
       
-      const savedAadhar = JSON.parse(localStorage.getItem('room_aadhar_data') || '{}');
-      savedAadhar[room.id] = {
-        aadhar_front: formData.aadhar_front_preview || null,
-        aadhar_back: formData.aadhar_back_preview || null,
-      };
-      localStorage.setItem('room_aadhar_data', JSON.stringify(savedAadhar));
+      // Step 2: Upload Aadhar to backend
+      if (formData.aadhar_front_preview || formData.aadhar_back_preview) {
+        await roomAPI.uploadAadhar(room.id, {
+          aadhar_front: formData.aadhar_front_preview || null,
+          aadhar_back: formData.aadhar_back_preview || null,
+        });
+        console.log('✅ Aadhar updated in backend for room:', room.id);
+      }
       
       onRoomUpdated();
       onHide();
@@ -1020,22 +1069,41 @@ const EditRoomModal = ({ show, onHide, onRoomUpdated, room, rooms }) => {
               className="btn-ghost" 
               onClick={() => {
                 if (room) {
-                  const savedAadhar = JSON.parse(localStorage.getItem('room_aadhar_data') || '{}');
-                  const aadharData = savedAadhar[room.id] || {};
-                  setFormData({
-                    room_number: room.room_number || '',
-                    tenant_name: room.tenant_name || '',
-                    tenant_mobile: room.tenant_mobile || '',
-                    tenant_email: room.tenant_email || '',
-                    room_rent: room.room_rent || '',
-                    move_in_date: room.move_in_date || '',
-                    address: room.address || '',
-                    aadhar_front: null,
-                    aadhar_back: null,
-                    aadhar_front_preview: aadharData.aadhar_front || null,
-                    aadhar_back_preview: aadharData.aadhar_back || null,
-                    is_active: room.is_active !== undefined ? room.is_active : true,
-                  });
+                  const fetchAadhar = async () => {
+                    try {
+                      const response = await roomAPI.getAadhar(room.id);
+                      setFormData({
+                        room_number: room.room_number || '',
+                        tenant_name: room.tenant_name || '',
+                        tenant_mobile: room.tenant_mobile || '',
+                        tenant_email: room.tenant_email || '',
+                        room_rent: room.room_rent || '',
+                        move_in_date: room.move_in_date || '',
+                        address: room.address || '',
+                        aadhar_front: null,
+                        aadhar_back: null,
+                        aadhar_front_preview: response.data.aadhar_front || null,
+                        aadhar_back_preview: response.data.aadhar_back || null,
+                        is_active: room.is_active !== undefined ? room.is_active : true,
+                      });
+                    } catch (err) {
+                      setFormData({
+                        room_number: room.room_number || '',
+                        tenant_name: room.tenant_name || '',
+                        tenant_mobile: room.tenant_mobile || '',
+                        tenant_email: room.tenant_email || '',
+                        room_rent: room.room_rent || '',
+                        move_in_date: room.move_in_date || '',
+                        address: room.address || '',
+                        aadhar_front: null,
+                        aadhar_back: null,
+                        aadhar_front_preview: null,
+                        aadhar_back_preview: null,
+                        is_active: room.is_active !== undefined ? room.is_active : true,
+                      });
+                    }
+                  };
+                  fetchAadhar();
                 }
                 setError(null);
                 onHide();
@@ -1052,7 +1120,7 @@ const EditRoomModal = ({ show, onHide, onRoomUpdated, room, rooms }) => {
 };
 
 // ========================================
-// STATUS UPDATE MODAL
+// STATUS UPDATE MODAL - FIXED
 // ========================================
 const StatusUpdateModal = ({ show, onHide, room, onStatusUpdated }) => {
   const [status, setStatus] = useState('');
@@ -1076,7 +1144,9 @@ const StatusUpdateModal = ({ show, onHide, room, onStatusUpdated }) => {
         is_active: status === 'occupied',
         tenant_name: status === 'occupied' ? room.tenant_name : null,
         tenant_mobile: status === 'occupied' ? room.tenant_mobile : null,
+        tenant_email: status === 'occupied' ? room.tenant_email : null,
         is_deleted: status === 'vacant' ? true : false,
+        move_out_date: status === 'vacant' ? new Date().toISOString().split('T')[0] : null,
       };
       await roomAPI.update(room.id, data);
       onStatusUpdated();
@@ -1165,19 +1235,14 @@ const Rooms = () => {
     applyFilters();
   }, [rooms, searchTerm, filterStatus, sortField, sortOrder]);
 
+  // 🔥 FIX: Sirf active rooms fetch karein
   const fetchRooms = async () => {
     try {
       setLoading(true);
       const response = await roomAPI.getAll();
       
-      const savedAadhar = JSON.parse(localStorage.getItem('room_aadhar_data') || '{}');
-      const roomsWithAadhar = response.data.map(room => ({
-        ...room,
-        aadhar_front: savedAadhar[room.id]?.aadhar_front || null,
-        aadhar_back: savedAadhar[room.id]?.aadhar_back || null,
-      }));
-      
-      setRooms(roomsWithAadhar);
+      const activeRooms = response.data.filter(room => room.is_active === true);
+      setRooms(activeRooms);
       setError(null);
     } catch (err) {
       console.error('Error fetching rooms:', err);
@@ -1202,10 +1267,9 @@ const Rooms = () => {
       });
     }
 
+    // 🔥 FIX: Sirf occupied filter rakho (vacant rooms already nahi hain)
     if (filterStatus === 'occupied') {
       filtered = filtered.filter(room => room.tenant_name && room.tenant_name !== 'N/A' && room.is_active);
-    } else if (filterStatus === 'vacant') {
-      filtered = filtered.filter(room => !room.is_active || !room.tenant_name || room.tenant_name === 'N/A');
     }
 
     filtered.sort((a, b) => {
@@ -1239,9 +1303,6 @@ const Rooms = () => {
     if (!deleteTarget) return;
     try {
       await roomAPI.delete(deleteTarget.id);
-      const savedAadhar = JSON.parse(localStorage.getItem('room_aadhar_data') || '{}');
-      delete savedAadhar[deleteTarget.id];
-      localStorage.setItem('room_aadhar_data', JSON.stringify(savedAadhar));
       fetchRooms();
       setShowDeleteModal(false);
       showAlert('success', `✅ Room ${deleteTarget.room_number} deleted successfully!`);
@@ -1264,7 +1325,7 @@ const Rooms = () => {
   const stats = [
     { icon: <FiGrid size={22} />, number: rooms.length, label: 'Total Rooms', change: '+12%', cardClass: 'card-gold' },
     { icon: <FiUsers size={22} />, number: rooms.filter(r => r.tenant_name && r.tenant_name !== 'N/A' && r.is_active).length, label: 'Occupied', change: '+8%', cardClass: 'card-green' },
-    { icon: <FiMapPin size={22} />, number: rooms.filter(r => !r.is_active || !r.tenant_name || r.tenant_name === 'N/A').length, label: 'Vacant', change: '-3%', cardClass: 'card-rose' },
+    { icon: <FiMapPin size={22} />, number: 0, label: 'Vacant', change: '-3%', cardClass: 'card-rose' },
     { icon: <FiBriefcase size={22} />, number: rooms.filter(r => r.tenant_mobile && r.tenant_mobile !== 'N/A').length, label: 'With Contact', change: '+5%', cardClass: 'card-blue' },
   ];
 
@@ -1318,7 +1379,6 @@ const Rooms = () => {
           <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
             <option value="all">All Rooms</option>
             <option value="occupied">Occupied</option>
-            <option value="vacant">Vacant</option>
           </select>
         </div>
         <button 

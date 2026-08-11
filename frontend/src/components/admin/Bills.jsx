@@ -685,7 +685,7 @@ const PendingDuesSummary = ({ allBillDetails, onPayAll, onPayIndividual }) => {
         <table className="table-premium">
           <thead>
             <tr>
-              <th className="col-sno">S.No</th>
+              <th className="col-sno">#</th>
               <th className="col-room">Room</th>
               <th className="col-tenant">Tenant</th>
               <th className="col-months">Months</th>

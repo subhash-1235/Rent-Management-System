@@ -1,7 +1,28 @@
+// frontend/src/services/api.js
+
 import axios from 'axios';
 
-// 🔥 Mobile Access Ke Liye - Laptop Ki IP Daalein
-const API_URL = 'http://10.221.234.205:8000/api/';
+// ========================================
+// 🔥 API URL - Auto-detect based on environment
+// ========================================
+
+// Get the current hostname (works for both localhost and network)
+const hostname = window.location.hostname;
+
+// If accessing from network (like mobile), use the network IP
+// Otherwise use localhost
+let API_URL;
+if (hostname === 'localhost' || hostname === '127.0.0.1') {
+  API_URL = 'http://localhost:8000/api/';
+} else {
+  // Use the same hostname but with port 8000 for backend
+  API_URL = `http://${hostname}:8000/api/`;
+}
+
+// 🔥 For mobile testing, you can also hardcode your laptop IP
+// const API_URL = 'http://192.168.1.100:8000/api/';
+
+console.log('🔗 API URL:', API_URL);
 
 // Create axios instance
 const api = axios.create({
@@ -20,9 +41,7 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // Response interceptor to handle token refresh
@@ -46,6 +65,8 @@ api.interceptors.response.use(
       } catch (refreshError) {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('user_role');
         window.location.href = '/login';
       }
     }
@@ -57,16 +78,39 @@ api.interceptors.response.use(
 // AUTH APIs
 // ============================================
 export const authAPI = {
-  login: (username, password) => 
-    api.post('token/', { username, password }),
-  refresh: (refresh) => 
-    api.post('token/refresh/', { refresh }),
-  register: (data) => 
-    api.post('register/', data),
+  login: (username, password) => api.post('token/', { username, password }),
+  refresh: (refresh) => api.post('token/refresh/', { refresh }),
+  register: (data) => api.post('register/', data),
   logout: () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('user_role');
   },
+};
+
+// ============================================
+// OTP APIs
+// ============================================
+export const otpAPI = {
+  checkEmail: (email) => api.post('check-email/', { email }),
+  sendOTP: (email) => api.post('send-otp/', { email }),
+  verifyOTP: (email, otp) => api.post('verify-otp/', { email, otp }),
+  resendOTP: (email) => api.post('resend-otp/', { email }),
+};
+
+// ============================================
+// TENANT APIs
+// ============================================
+export const tenantAPI = {
+  checkMobile: (mobile) => api.post('tenant/check-mobile/', { mobile }),
+  register: (data) => api.post('tenant/register/', data),
+  login: (mobile, password) => api.post('tenant/login/', { mobile, password }),
+  getProfile: () => api.get('tenant/profile/'),
+  updateProfile: (data) => api.put('tenant/profile/', data),
+  changePassword: (data) => api.post('tenant/change-password/', data),
+  getBills: () => api.get('tenant/bills/'),
+  payBill: (data) => api.post('tenant/pay-bill/', data),
 };
 
 // ============================================
@@ -81,6 +125,8 @@ export const roomAPI = {
   update: (id, data) => api.put(`rooms/${id}/`, data),
   partialUpdate: (id, data) => api.patch(`rooms/${id}/`, data),
   delete: (id) => api.delete(`rooms/${id}/`),
+  uploadAadhar: (id, data) => api.post(`rooms/${id}/upload_aadhar/`, data),
+  getAadhar: (id) => api.get(`rooms/${id}/get_aadhar/`),
 };
 
 // ============================================
@@ -143,8 +189,6 @@ export const tenantHistoryAPI = {
 // ============================================
 export const dashboardAPI = {
   getStats: () => api.get('dashboard/stats/'),
-  getMonthlyStats: (month) => api.get(`dashboard/monthly_stats/?month=${month}`),
-  getYearlyStats: (year) => api.get(`dashboard/yearly_stats/?year=${year}`),
 };
 
 // ============================================
@@ -159,11 +203,10 @@ export const qrAPI = {
   upload: (data) => api.post('qr-settings/upload_qr/', data),
 };
 
-// ============================================
-// EXPORT ALL
-// ============================================
 export default {
   authAPI,
+  otpAPI,
+  tenantAPI,
   roomAPI,
   billAPI,
   readingAPI,
@@ -173,7 +216,4 @@ export default {
   qrAPI,
 };
 
-// ============================================
-// DEFAULT EXPORT
-// ============================================
 export const apiClient = api;

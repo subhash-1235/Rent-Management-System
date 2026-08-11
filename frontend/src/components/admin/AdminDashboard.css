@@ -650,7 +650,7 @@
 .table-premium th:nth-child(4),
 .table-premium td:nth-child(4) { width: 110px; min-width: 110px; max-width: 110px; }
 .table-premium th:nth-child(5),
-.table-premium td:nth-child(5) { width: 60px; min-width: 60px; max-width: 60px; }
+.table-premium td:nth-child(5) { width: 120px; min-width: 120px; max-width: 60px; }
 .table-premium th:nth-child(6),
 .table-premium td:nth-child(6) { width: 80px; min-width: 80px; max-width: 80px; }
 .table-premium th:nth-child(7),

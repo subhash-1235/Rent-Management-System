@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator, DecimalValidator
 from decimal import Decimal
+from django.utils import timezone
+from datetime import timedelta
 
 class Room(models.Model):
     """Room Model - Each room has a tenant and fixed rent"""
@@ -17,12 +19,17 @@ class Room(models.Model):
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    # 🔥 NEW: Aadhar Card Fields (store base64 images in database)
+    aadhar_front = models.TextField(blank=True, null=True)
+    aadhar_back = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f"Room {self.room_number} - {self.tenant_name or 'Vacant'}"
 
     class Meta:
         ordering = ['room_number']
+
 
 
 class MonthlyBill(models.Model):
@@ -54,6 +61,7 @@ class MonthlyBill(models.Model):
 
     class Meta:
         ordering = ['-month']
+        unique_together = ['month']
 
 
 class RoomMeterReading(models.Model):
@@ -78,6 +86,7 @@ class RoomMeterReading(models.Model):
     ])
     tenant_name_snapshot = models.CharField(max_length=100, blank=True, null=True)
     tenant_mobile_snapshot = models.CharField(max_length=15, blank=True, null=True)
+    room_rent_snapshot = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -140,7 +149,7 @@ class TenantHistory(models.Model):
 class QRCodeSettings(models.Model):
     """Admin UPI QR Code Settings"""
     upi_id = models.CharField(max_length=100, help_text="Your UPI ID (e.g., admin@paytm)")
-    qr_code_image = models.ImageField(upload_to='qr_codes/', blank=True, null=True)
+    qr_code_image = models.TextField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -150,3 +159,59 @@ class QRCodeSettings(models.Model):
     class Meta:
         verbose_name = "QR Code Setting"
         verbose_name_plural = "QR Code Settings"
+
+
+# ========================================
+# OTP Model for Email Verification
+# ========================================
+class OTP(models.Model):
+    """OTP Model for Email Verification"""
+    email = models.EmailField()
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_verified = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return f"OTP - {self.email} - {self.otp}"
+    
+    def is_expired(self):
+        """Check if OTP is expired (5 minutes)"""
+        from django.utils.timezone import now
+        return now() > self.created_at + timedelta(minutes=5)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'OTP'
+        verbose_name_plural = 'OTPs'
+
+
+# ========================================
+# 🔥 NEW: Tenant Model for Tenant Login
+# ========================================
+class Tenant(models.Model):
+    """Tenant model for tenant login and authentication"""
+    room = models.OneToOneField(
+        Room, 
+        on_delete=models.CASCADE, 
+        related_name='tenant_account',
+        null=True,
+        blank=True
+    )
+    name = models.CharField(max_length=100)
+    mobile = models.CharField(max_length=15, unique=True)
+    email = models.EmailField(blank=True, null=True)
+    password = models.CharField(max_length=255, blank=True, null=True)  # Hashed password
+    is_registered = models.BooleanField(default=False)
+    registered_at = models.DateTimeField(null=True, blank=True)
+    last_login = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.mobile}"
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Tenant'
+        verbose_name_plural = 'Tenants'

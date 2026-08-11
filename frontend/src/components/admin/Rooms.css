@@ -664,7 +664,7 @@
   .table-premium thead th.col-tenant { width: 100px; min-width: 100px; }
   .table-premium thead th.col-mobile { width: 90px; min-width: 90px; }
   .table-premium thead th.col-rent { width: 75px; min-width: 75px; }
-  .table-premium thead th.col-status { width: 85px; min-width: 85px; }
+  .table-premium thead th.col-status { width: 1005px; min-width: 100px; }
   .table-premium thead th.col-actions { width: 100px; min-width: 100px; }
   
   .table-premium tbody td {

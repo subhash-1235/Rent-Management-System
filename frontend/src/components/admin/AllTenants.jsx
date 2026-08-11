@@ -71,7 +71,7 @@ const CustomAlert = ({ type, message, onClose }) => {
 };
 
 // ========================================
-// VIEW TENANT DETAILS MODAL
+// VIEW TENANT DETAILS MODAL - INSTANT (PRE-FETCHED AADHAR)
 // ========================================
 const ViewTenantDetailsModal = ({ show, onHide, tenant }) => {
   const [showFullImage, setShowFullImage] = useState(null);
@@ -89,68 +89,253 @@ const ViewTenantDetailsModal = ({ show, onHide, tenant }) => {
     });
   };
 
-  const savedAadhar = JSON.parse(localStorage.getItem('room_aadhar_data') || '{}');
-  const aadharData = savedAadhar[tenant.room_id] || {};
-
   const openFullImage = (imageUrl) => {
-    setShowFullImage(imageUrl);
+    if (imageUrl) setShowFullImage(imageUrl);
   };
 
   const closeFullImage = () => {
     setShowFullImage(null);
   };
 
+  const hasAadharFront = tenant.aadhar_front && tenant.aadhar_front !== '';
+  const hasAadharBack = tenant.aadhar_back && tenant.aadhar_back !== '';
+
   return (
     <>
       <Modal show={show} onHide={onHide} size="lg" centered>
-        <Modal.Header style={{ borderBottom: '1px solid var(--border-color)', padding: '14px 20px' }}>
-          <Modal.Title style={{ color: 'var(--text-primary)', fontSize: '18px', fontWeight: 700 }}>
-            <FiUser size={18} style={{ marginRight: '8px' }} />
+        <Modal.Header style={{ 
+          borderBottom: '1px solid var(--border-color)', 
+          padding: '16px 24px',
+          background: 'var(--bg-glass)'
+        }}>
+          <Modal.Title style={{ 
+            color: 'var(--text-primary)', 
+            fontSize: '18px', 
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}>
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #6C63FF, #4A42C4)',
+              color: 'white'
+            }}>
+              <FiUser size={18} />
+            </span>
             Tenant Details
           </Modal.Title>
         </Modal.Header>
-        <Modal.Body style={{ background: 'var(--bg-primary)', padding: '20px 24px', maxHeight: '70vh', overflow: 'auto' }}>
+        
+        <Modal.Body style={{ 
+          background: 'var(--bg-primary)', 
+          padding: '20px 24px', 
+          maxHeight: '70vh', 
+          overflow: 'auto' 
+        }}>
           <div className="tenant-detail-container">
-            <div className="tenant-detail-header">
+            {/* Header */}
+            <div className="tenant-detail-header" style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              paddingBottom: '14px',
+              borderBottom: '1px solid var(--border-color)',
+              marginBottom: '16px',
+              flexWrap: 'wrap',
+              gap: '10px'
+            }}>
               <div className="tenant-detail-name">
-                <h4 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '20px', fontWeight: 700 }}>
+                <h4 style={{ 
+                  color: 'var(--text-primary)', 
+                  margin: 0, 
+                  fontSize: '20px', 
+                  fontWeight: 700 
+                }}>
                   {tenant.tenant_name}
                 </h4>
-                <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '14px' }}>
+                <p style={{ 
+                  color: 'var(--text-secondary)', 
+                  margin: '4px 0 0 0', 
+                  fontSize: '14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  <span style={{ color: 'var(--text-muted)' }}>🏠</span>
                   Room {tenant.room_number}
                 </p>
               </div>
-              <span className={`badge-status ${tenant.is_active ? 'occupied' : 'vacant'}`}>
+              <span className={`badge-status ${tenant.is_active ? 'occupied' : 'vacant'}`}
+                style={{
+                  padding: '4px 14px',
+                  borderRadius: '50px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  background: tenant.is_active 
+                    ? 'rgba(52, 211, 153, 0.12)' 
+                    : 'rgba(248, 113, 113, 0.12)',
+                  color: tenant.is_active ? '#34D399' : '#F87171',
+                  border: `1px solid ${tenant.is_active ? 'rgba(52, 211, 153, 0.15)' : 'rgba(248, 113, 113, 0.15)'}`
+                }}
+              >
                 {tenant.is_active ? '✅ Active' : '⏳ Former'}
               </span>
             </div>
 
-            <div className="tenant-detail-grid">
-              <div className="tenant-detail-item">
-                <label>📱 Mobile</label>
-                <span>{tenant.tenant_mobile || '—'}</span>
+            {/* Info Grid */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '12px',
+              marginBottom: '14px'
+            }}>
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '3px',
+                padding: '10px 14px',
+                background: 'var(--bg-glass)',
+                borderRadius: '10px',
+                border: '1px solid var(--border-color)'
+              }}>
+                <label style={{
+                  fontSize: '10px',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.3px',
+                  color: 'var(--text-muted)'
+                }}>📱 Mobile</label>
+                <span style={{
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: 'var(--text-primary)'
+                }}>{tenant.tenant_mobile || '—'}</span>
               </div>
-              <div className="tenant-detail-item">
-                <label>📧 Email</label>
-                <span>{tenant.tenant_email || '—'}</span>
+
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '3px',
+                padding: '10px 14px',
+                background: 'var(--bg-glass)',
+                borderRadius: '10px',
+                border: '1px solid var(--border-color)',
+                wordBreak: 'break-all'
+              }}>
+                <label style={{
+                  fontSize: '10px',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.3px',
+                  color: 'var(--text-muted)'
+                }}>📧 Email</label>
+                <span style={{
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: 'var(--text-primary)',
+                  wordBreak: 'break-all',
+                  overflowWrap: 'break-word'
+                }}>{tenant.tenant_email || '—'}</span>
               </div>
-              <div className="tenant-detail-item">
-                <label>🏠 Room Rent</label>
-                <span>₹{tenant.room_rent || 0}</span>
+
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '3px',
+                padding: '10px 14px',
+                background: 'var(--bg-glass)',
+                borderRadius: '10px',
+                border: '1px solid var(--border-color)'
+              }}>
+                <label style={{
+                  fontSize: '10px',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.3px',
+                  color: 'var(--text-muted)'
+                }}>💰 Room Rent</label>
+                <span style={{
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  color: '#6C63FF'
+                }}>₹{tenant.room_rent || 0}</span>
               </div>
-              <div className="tenant-detail-item">
-                <label>📅 Move-in Date</label>
-                <span>{formatDate(tenant.move_in_date)}</span>
+
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '3px',
+                padding: '10px 14px',
+                background: 'var(--bg-glass)',
+                borderRadius: '10px',
+                border: '1px solid var(--border-color)'
+              }}>
+                <label style={{
+                  fontSize: '10px',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.3px',
+                  color: 'var(--text-muted)'
+                }}>📅 Move-in</label>
+                <span style={{
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: 'var(--text-primary)'
+                }}>{formatDate(tenant.move_in_date)}</span>
               </div>
+
               {tenant.move_out_date && (
-                <div className="tenant-detail-item">
-                  <label>📅 Move-out Date</label>
-                  <span>{formatDate(tenant.move_out_date)}</span>
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '3px',
+                  padding: '10px 14px',
+                  background: 'var(--bg-glass)',
+                  borderRadius: '10px',
+                  border: '1px solid var(--border-color)'
+                }}>
+                  <label style={{
+                    fontSize: '10px',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.3px',
+                    color: 'var(--text-muted)'
+                  }}>📅 Move-out</label>
+                  <span style={{
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: 'var(--text-primary)'
+                  }}>{formatDate(tenant.move_out_date)}</span>
                 </div>
               )}
-              <div className="tenant-detail-item">
-                <label>⏳ Stay Duration</label>
-                <span>
+
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '3px',
+                padding: '10px 14px',
+                background: 'var(--bg-glass)',
+                borderRadius: '10px',
+                border: '1px solid var(--border-color)'
+              }}>
+                <label style={{
+                  fontSize: '10px',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.3px',
+                  color: 'var(--text-muted)'
+                }}>⏳ Stay</label>
+                <span style={{
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: 'var(--text-primary)'
+                }}>
                   {tenant.move_in_date && tenant.move_out_date ? (
                     `${Math.ceil((new Date(tenant.move_out_date) - new Date(tenant.move_in_date)) / (1000 * 60 * 60 * 24))} days`
                   ) : tenant.move_in_date ? (
@@ -158,74 +343,260 @@ const ViewTenantDetailsModal = ({ show, onHide, tenant }) => {
                   ) : '—'}
                 </span>
               </div>
+
               {tenant.total_paid > 0 && (
-                <div className="tenant-detail-item">
-                  <label>💰 Total Paid</label>
-                  <span style={{ color: '#34D399' }}>₹{tenant.total_paid}</span>
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '3px',
+                  padding: '10px 14px',
+                  background: 'rgba(52, 211, 153, 0.06)',
+                  borderRadius: '10px',
+                  border: '1px solid rgba(52, 211, 153, 0.1)'
+                }}>
+                  <label style={{
+                    fontSize: '10px',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.3px',
+                    color: 'var(--text-muted)'
+                  }}>💰 Paid</label>
+                  <span style={{
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    color: '#34D399'
+                  }}>₹{tenant.total_paid}</span>
                 </div>
               )}
+
               {tenant.total_bills > 0 && (
-                <div className="tenant-detail-item">
-                  <label>📋 Total Bills</label>
-                  <span style={{ color: '#6C63FF' }}>₹{tenant.total_bills}</span>
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '3px',
+                  padding: '10px 14px',
+                  background: 'rgba(108, 99, 255, 0.06)',
+                  borderRadius: '10px',
+                  border: '1px solid rgba(108, 99, 255, 0.1)'
+                }}>
+                  <label style={{
+                    fontSize: '10px',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.3px',
+                    color: 'var(--text-muted)'
+                  }}>📋 Bills</label>
+                  <span style={{
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    color: '#6C63FF'
+                  }}>₹{tenant.total_bills}</span>
                 </div>
               )}
             </div>
 
+            {/* Address Section */}
             {tenant.address && (
-              <div className="tenant-detail-notes">
-                <label>📍 Address</label>
-                <p>{tenant.address}</p>
+              <div style={{
+                marginTop: '6px',
+                padding: '12px 16px',
+                background: 'var(--bg-glass)',
+                borderRadius: '10px',
+                border: '1px solid var(--border-color)'
+              }}>
+                <label style={{
+                  fontSize: '10px',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.3px',
+                  color: 'var(--text-muted)',
+                  display: 'block',
+                  marginBottom: '4px'
+                }}>📍 Address</label>
+                <p style={{
+                  fontSize: '14px',
+                  color: 'var(--text-primary)',
+                  margin: 0,
+                  lineHeight: '1.5',
+                  wordBreak: 'break-word'
+                }}>{tenant.address}</p>
               </div>
             )}
 
-            <div className="tenant-detail-aadhar">
-              <label>🪪 Aadhar Card</label>
-              <div className="aadhar-images">
-                <div
-                  className="aadhar-image-box clickable"
-                  onClick={() => aadharData.aadhar_front && openFullImage(aadharData.aadhar_front)}
-                  style={{ cursor: aadharData.aadhar_front ? 'pointer' : 'default' }}
-                >
-                  {aadharData.aadhar_front ? (
-                    <img src={aadharData.aadhar_front} alt="Aadhar Front" />
-                  ) : (
-                    <div className="aadhar-placeholder">Front Side</div>
+            {/* Aadhar Section */}
+            <div style={{ marginTop: '14px' }}>
+              <label style={{
+                fontSize: '10px',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.3px',
+                color: 'var(--text-muted)',
+                display: 'block',
+                marginBottom: '8px'
+              }}>🪪 Aadhar Card</label>
+              
+              {(!hasAadharFront && !hasAadharBack) ? (
+                <div style={{
+                  padding: '16px',
+                  textAlign: 'center',
+                  background: 'var(--bg-glass)',
+                  borderRadius: '10px',
+                  border: '1px dashed var(--border-color)',
+                  color: 'var(--text-muted)'
+                }}>
+                  <span style={{ fontSize: '14px' }}>📄 No Aadhar card uploaded</span>
+                </div>
+              ) : (
+                <div style={{
+                  display: 'flex',
+                  gap: '12px',
+                  flexWrap: 'wrap'
+                }}>
+                  {hasAadharFront && (
+                    <div
+                      style={{
+                        flex: '1 1 120px',
+                        minWidth: '100px',
+                        maxWidth: '160px',
+                        height: '80px',
+                        borderRadius: '10px',
+                        overflow: 'hidden',
+                        border: '2px solid var(--border-color)',
+                        background: 'var(--bg-glass)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        position: 'relative',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease'
+                      }}
+                      onClick={() => openFullImage(tenant.aadhar_front)}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = '#6C63FF';
+                        e.currentTarget.style.transform = 'scale(1.02)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = 'var(--border-color)';
+                        e.currentTarget.style.transform = 'scale(1)';
+                      }}
+                    >
+                      <img src={tenant.aadhar_front} alt="Aadhar Front" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <div style={{
+                        position: 'absolute',
+                        bottom: '4px',
+                        right: '4px',
+                        background: 'rgba(0,0,0,0.7)',
+                        color: 'white',
+                        fontSize: '8px',
+                        padding: '2px 6px',
+                        borderRadius: '4px'
+                      }}>🔍 Click</div>
+                    </div>
                   )}
-                  {aadharData.aadhar_front && (
-                    <div className="aadhar-click-hint">🔍 Click to view full</div>
+                  
+                  {hasAadharBack && (
+                    <div
+                      style={{
+                        flex: '1 1 120px',
+                        minWidth: '100px',
+                        maxWidth: '160px',
+                        height: '80px',
+                        borderRadius: '10px',
+                        overflow: 'hidden',
+                        border: '2px solid var(--border-color)',
+                        background: 'var(--bg-glass)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        position: 'relative',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease'
+                      }}
+                      onClick={() => openFullImage(tenant.aadhar_back)}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = '#6C63FF';
+                        e.currentTarget.style.transform = 'scale(1.02)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = 'var(--border-color)';
+                        e.currentTarget.style.transform = 'scale(1)';
+                      }}
+                    >
+                      <img src={tenant.aadhar_back} alt="Aadhar Back" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <div style={{
+                        position: 'absolute',
+                        bottom: '4px',
+                        right: '4px',
+                        background: 'rgba(0,0,0,0.7)',
+                        color: 'white',
+                        fontSize: '8px',
+                        padding: '2px 6px',
+                        borderRadius: '4px'
+                      }}>🔍 Click</div>
+                    </div>
                   )}
                 </div>
-                <div
-                  className="aadhar-image-box clickable"
-                  onClick={() => aadharData.aadhar_back && openFullImage(aadharData.aadhar_back)}
-                  style={{ cursor: aadharData.aadhar_back ? 'pointer' : 'default' }}
-                >
-                  {aadharData.aadhar_back ? (
-                    <img src={aadharData.aadhar_back} alt="Aadhar Back" />
-                  ) : (
-                    <div className="aadhar-placeholder">Back Side</div>
-                  )}
-                  {aadharData.aadhar_back && (
-                    <div className="aadhar-click-hint">🔍 Click to view full</div>
-                  )}
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </Modal.Body>
-        <Modal.Footer style={{ borderTop: '1px solid var(--border-color)', padding: '10px 20px', background: 'var(--bg-glass)' }}>
-          <Button className="btn-ghost" onClick={onHide} style={{ fontSize: '13px', padding: '6px 18px' }}>Close</Button>
+        
+        <Modal.Footer style={{ 
+          borderTop: '1px solid var(--border-color)', 
+          padding: '10px 20px', 
+          background: 'var(--bg-glass)',
+          display: 'flex',
+          justifyContent: 'flex-end'
+        }}>
+          <button 
+            onClick={onHide} 
+            style={{
+              padding: '6px 24px',
+              borderRadius: '10px',
+              border: '1px solid var(--border-color)',
+              background: 'var(--bg-glass)',
+              color: 'var(--text-secondary)',
+              fontWeight: 600,
+              fontSize: '13px',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'var(--bg-card-hover)';
+              e.currentTarget.style.borderColor = '#6C63FF';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'var(--bg-glass)';
+              e.currentTarget.style.borderColor = 'var(--border-color)';
+            }}
+          >
+            ✕ Close
+          </button>
         </Modal.Footer>
       </Modal>
 
       {/* Full Image View Modal */}
       <Modal show={!!showFullImage} onHide={closeFullImage} centered size="lg">
-        <Modal.Body style={{ padding: '0', background: 'rgba(0,0,0,0.92)', position: 'relative', minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Modal.Body style={{ 
+          padding: '0', 
+          background: 'rgba(0,0,0,0.92)', 
+          position: 'relative', 
+          minHeight: '60vh', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          borderRadius: '12px'
+        }}>
           <img
             src={showFullImage}
             alt="Aadhar Card Full View"
-            style={{ width: '100%', height: 'auto', maxHeight: '90vh', objectFit: 'contain' }}
+            style={{ 
+              width: '100%', 
+              height: 'auto', 
+              maxHeight: '90vh', 
+              objectFit: 'contain',
+              borderRadius: '8px'
+            }}
           />
           <button
             onClick={closeFullImage}
@@ -520,10 +891,12 @@ const AllTenants = () => {
     applyFilters();
   }, [tenants, searchTerm, filterType]);
 
+  // 🔥 UPDATED: Fetch ALL tenants (active + former) with Aadhar
   const fetchAllTenants = async () => {
     try {
       setLoading(true);
 
+      // 🔥 Get ALL rooms (including inactive/vacant)
       const roomsResponse = await roomAPI.getAll();
       const allRooms = roomsResponse.data || [];
 
@@ -532,6 +905,7 @@ const AllTenants = () => {
 
       const tenantMap = {};
 
+      // 🔥 Add tenants from rooms (both active and inactive)
       allRooms.forEach(room => {
         if (room.tenant_name && room.tenant_name.trim() !== '') {
           const key = `${room.tenant_name}_${room.room_number}`;
@@ -542,19 +916,22 @@ const AllTenants = () => {
             room_number: room.room_number,
             room_id: room.id,
             room_rent: room.room_rent,
-            is_active: true,
+            is_active: room.is_active || false,
             move_in_date: room.move_in_date,
-            move_out_date: null,
+            move_out_date: room.is_active ? null : (room.move_out_date || new Date().toISOString().split('T')[0]),
             address: room.address || '',
             total_paid: 0,
             total_bills: 0,
+            aadhar_front: room.aadhar_front || null,
+            aadhar_back: room.aadhar_back || null,
           };
         }
       });
 
+      // 🔥 Add tenants from history (if not already in map)
       historyData.forEach(history => {
         const key = `${history.tenant_name}_${history.room_number}`;
-        if (!tenantMap[key] || !tenantMap[key].is_active) {
+        if (!tenantMap[key]) {
           tenantMap[key] = {
             tenant_name: history.tenant_name,
             tenant_mobile: history.tenant_mobile || '',
@@ -564,15 +941,27 @@ const AllTenants = () => {
             room_rent: history.room_rent,
             is_active: false,
             move_in_date: history.move_in_date,
-            move_out_date: history.move_out_date,
+            move_out_date: history.move_out_date || new Date().toISOString().split('T')[0],
             address: history.address || '',
             total_paid: history.total_paid || 0,
             total_bills: history.total_bills || 0,
+            aadhar_front: null,
+            aadhar_back: null,
           };
         }
       });
 
-      setTenants(Object.values(tenantMap));
+      // 🔥 Convert to array and sort: Active first, then Former
+      const tenantArray = Object.values(tenantMap);
+      tenantArray.sort((a, b) => {
+        // Active tenants first (is_active === true)
+        if (a.is_active === true && b.is_active === false) return -1;
+        if (a.is_active === false && b.is_active === true) return 1;
+        // If both active or both former, sort by name
+        return a.tenant_name.localeCompare(b.tenant_name);
+      });
+
+      setTenants(tenantArray);
       setError(null);
     } catch (err) {
       console.error('Error fetching tenants:', err);
@@ -597,9 +986,9 @@ const AllTenants = () => {
     }
 
     if (filterType === 'active') {
-      filtered = filtered.filter(tenant => tenant.is_active);
+      filtered = filtered.filter(tenant => tenant.is_active === true);
     } else if (filterType === 'past') {
-      filtered = filtered.filter(tenant => !tenant.is_active);
+      filtered = filtered.filter(tenant => tenant.is_active === false);
     }
 
     setFilteredTenants(filtered);
@@ -643,8 +1032,8 @@ const AllTenants = () => {
 
   const stats = [
     { icon: <FiUsers size={22} />, number: tenants.length, label: 'Total Tenants', cardClass: 'card-gold' },
-    { icon: <FiCheck size={22} />, number: tenants.filter(t => t.is_active).length, label: 'Active', cardClass: 'card-green' },
-    { icon: <FiClock size={22} />, number: tenants.filter(t => !t.is_active).length, label: 'Past', cardClass: 'card-rose' },
+    { icon: <FiCheck size={22} />, number: tenants.filter(t => t.is_active === true).length, label: 'Active', cardClass: 'card-green' },
+    { icon: <FiClock size={22} />, number: tenants.filter(t => t.is_active === false).length, label: 'Former', cardClass: 'card-rose' },
     { icon: <FiHome size={22} />, number: new Set(tenants.map(t => t.room_number)).size, label: 'Rooms Used', cardClass: 'card-blue' },
   ];
 
@@ -720,7 +1109,7 @@ const AllTenants = () => {
           <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
             <option value="all">All Tenants</option>
             <option value="active">Active</option>
-            <option value="past">Past</option>
+            <option value="past">Former</option>
           </select>
         </div>
       </div>

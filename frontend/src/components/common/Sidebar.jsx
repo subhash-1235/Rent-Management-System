@@ -37,17 +37,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     <>
       {isOpen && (
         <div 
-          className="d-block d-lg-none"
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            background: 'rgba(0,0,0,0.7)',
-            zIndex: 999,
-            backdropFilter: 'blur(4px)',
-          }}
+          className="sidebar-overlay"
           onClick={toggleSidebar}
         />
       )}
@@ -79,14 +69,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         </ul>
 
         <div className="sidebar-bottom">
-          <div className="sidebar-user">
-            <div className="avatar">A</div>
-            <div className="user-info">
-              <div className="name">Admin</div>
-              <div className="email">admin@rentflow.com</div>
-            </div>
-          </div>
-          
           <button className="btn-logout-sidebar" onClick={handleLogout}>
             <FiLogOut size={18} />
             Logout
