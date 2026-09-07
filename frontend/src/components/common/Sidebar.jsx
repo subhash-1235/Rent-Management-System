@@ -8,7 +8,10 @@ import {
   FiClock, 
   FiSettings,
   FiLogOut,
-  FiUserCheck
+  FiUserCheck,
+  FiFileText,
+  FiCreditCard,
+  FiUser
 } from 'react-icons/fi';
 import { MdDashboard } from 'react-icons/md';
 import { useAuth } from '../../context/AuthContext';
@@ -16,10 +19,13 @@ import './Sidebar.css';
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const location = useLocation();
-  const { logout } = useAuth();
+  const { logout, role } = useAuth();
   const navigate = useNavigate();
 
-  const navItems = [
+  // ========================================
+  // ADMIN NAVIGATION ITEMS
+  // ========================================
+  const adminNavItems = [
     { path: '/', icon: <MdDashboard size={20} className="icon dashboard" />, label: 'Dashboard' },
     { path: '/rooms', icon: <FiGrid size={20} className="icon rooms" />, label: 'Rooms & Tenants' },
     { path: '/bills', icon: <FiDollarSign size={20} className="icon bills" />, label: 'Bills & Rent' },
@@ -27,6 +33,19 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     { path: '/all-tenants', icon: <FiUserCheck size={20} className="icon tenants" />, label: 'All Tenants' },
     { path: '/settings', icon: <FiSettings size={20} className="icon settings" />, label: 'Settings' },
   ];
+
+  // ========================================
+  // TENANT NAVIGATION ITEMS
+  // ========================================
+  const tenantNavItems = [
+    { path: '/tenant-dashboard', icon: <MdDashboard size={20} className="icon dashboard" />, label: 'Dashboard' },
+    { path: '/tenant-bills', icon: <FiFileText size={20} className="icon bills" />, label: 'My Bills' },
+    { path: '/tenant-payment', icon: <FiCreditCard size={20} className="icon payment" />, label: 'Pay Bill' },
+    { path: '/tenant-profile', icon: <FiUser size={20} className="icon profile" />, label: 'My Profile' },
+  ];
+
+  // Select nav items based on role
+  const navItems = role === 'admin' ? adminNavItems : tenantNavItems;
 
   const handleLogout = () => {
     logout();
@@ -47,7 +66,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <div className="logo-icon">🏠</div>
           <div>
             <div className="brand-text">RentFlow</div>
-            <div className="brand-sub">Premium Management</div>
+            <div className="brand-sub">{role === 'admin' ? 'Admin Panel' : 'Tenant Panel'}</div>
           </div>
         </div>
 

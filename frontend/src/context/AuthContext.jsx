@@ -164,6 +164,7 @@ export const AuthProvider = ({ children }) => {
 
   // ========================================
   // SINGLE REGISTER FUNCTION - Auto Detect
+  // 🔥 UPDATED: Removed OTP from tenant registration
   // ========================================
   const register = async (data) => {
     try {
@@ -171,8 +172,17 @@ export const AuthProvider = ({ children }) => {
       
       // Check if mobile is provided (tenant registration)
       if (data.mobile) {
-        // TENANT REGISTRATION
-        const response = await tenantAPI.register(data);
+        // TENANT REGISTRATION - OTP already verified!
+        // 🔥 IMPORTANT: Do NOT send OTP here - it's already verified in frontend
+        const registerData = {
+          mobile: data.mobile,
+          name: data.name,
+          email: data.email,
+          password: data.password,
+          otp_verified: true, // 🔥 Flag to tell backend OTP is already verified
+        };
+        
+        const response = await tenantAPI.register(registerData);
         const { access, refresh, tenant } = response.data;
         
         localStorage.setItem('access_token', access);

@@ -53,6 +53,7 @@ const Register = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [emailForOTP, setEmailForOTP] = useState('');
   const [tenantRoomData, setTenantRoomData] = useState(null);
+  const [otpVerified, setOtpVerified] = useState(false); // 🔥 NEW: Track OTP verification
   
   const inputRefs = useRef([]);
   const { register } = useAuth();
@@ -188,6 +189,7 @@ const Register = () => {
         setEmailForOTP(formData.email);
         setOtpSent(true);
         setStep(2);
+        setOtpVerified(false); // 🔥 Reset OTP verified flag
         setSuccess('OTP sent to your email successfully!');
         setTimeout(() => setSuccess(''), 3000);
       } else {
@@ -247,6 +249,7 @@ const Register = () => {
     }
   };
 
+  // 🔥 UPDATED: Verify OTP then create account without sending OTP again
   const handleVerifyOTP = async () => {
     const otpString = otp.join('');
     if (otpString.length < 6) {
@@ -259,10 +262,14 @@ const Register = () => {
     setOtpSuccess('');
 
     try {
+      // Step 1: Verify OTP
       const verifyResponse = await otpAPI.verifyOTP(emailForOTP, otpString);
 
       if (verifyResponse.status === 200) {
+        setOtpVerified(true); // 🔥 Mark OTP as verified
         setOtpSuccess('OTP verified successfully! Creating account...');
+        
+        // Step 2: Create account WITHOUT sending OTP again
         await createAccount();
       } else {
         setOtpError(verifyResponse.data?.error || 'Invalid OTP. Please try again.');
@@ -277,18 +284,21 @@ const Register = () => {
     }
   };
 
+  // 🔥 UPDATED: Create account WITHOUT OTP (already verified)
   const createAccount = async () => {
     try {
       let result;
       
       if (isTenant) {
         const fullName = `${formData.firstName.trim()} ${formData.lastName.trim()}`;
+        // 🔥 IMPORTANT: Do NOT send OTP here - it's already verified!
         result = await register({
           mobile: formData.mobile,
           name: fullName,
           email: formData.email,
           password: formData.password,
-          otp: otp.join('')
+          // otp: otp.join(''),  // ❌ REMOVED - OTP already verified
+          otp_verified: true, // 🔥 Send flag that OTP is verified
         });
       } else {
         result = await register({
@@ -307,7 +317,7 @@ const Register = () => {
       }
     } catch (err) {
       console.error('Create account error:', err);
-      setOtpError('Something went wrong. Please try again.');
+      setOtpError(err.response?.data?.error || 'Something went wrong. Please try again.');
     }
   };
 
@@ -322,6 +332,7 @@ const Register = () => {
       const response = await otpAPI.resendOTP(emailForOTP);
 
       if (response.status === 200) {
+        setOtpVerified(false); // 🔥 Reset OTP verified flag on resend
         setOtpSuccess('New OTP sent to your email!');
         startTimer();
         setOtp(['', '', '', '', '', '']);
@@ -343,6 +354,7 @@ const Register = () => {
     setOtp(['', '', '', '', '', '']);
     setOtpError('');
     setOtpSuccess('');
+    setOtpVerified(false); // 🔥 Reset OTP verified flag
   };
 
   const togglePasswordVisibility = () => {

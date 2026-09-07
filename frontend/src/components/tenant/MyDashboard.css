@@ -1,738 +1,761 @@
-/* src/components/tenant/MyDashboard.css */
-
 /* ========================================
-   TENANT DASHBOARD - SPECIFIC STYLES
+   TENANT DASHBOARD - COMPLETE STYLES
+   Dark/Light Mode + Mobile Responsive
    ======================================== */
 
-/* ===== WELCOME SECTION ===== */
-.tenant-welcome {
+/* ===== ROOT VARIABLES ===== */
+:root {
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.4);
+  --border-color: rgba(255, 255, 255, 0.06);
+  --bg-card: #0A0E1A;
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --card-hover: rgba(255, 255, 255, 0.03);
+  --bg-glass: rgba(255, 255, 255, 0.02);
+  
+  /* Card Colors - Dark Mode */
+  --stat-gold-bg: linear-gradient(145deg, #1a1a2e, #16213e);
+  --stat-gold-border: rgba(255, 215, 0, 0.12);
+  --stat-gold-color: #FFD700;
+  --stat-gold-glow: rgba(255, 215, 0, 0.08);
+  
+  --stat-green-bg: linear-gradient(145deg, #0a1a0a, #0d2e1a);
+  --stat-green-border: rgba(0, 255, 127, 0.10);
+  --stat-green-color: #00FF7F;
+  --stat-green-glow: rgba(0, 255, 127, 0.08);
+  
+  --stat-red-bg: linear-gradient(145deg, #2a0a0a, #3a0d0d);
+  --stat-red-border: rgba(255, 100, 100, 0.10);
+  --stat-red-color: #FF6B6B;
+  --stat-red-glow: rgba(255, 100, 100, 0.08);
+  
+  --stat-blue-bg: linear-gradient(145deg, #0a0a1a, #0d1a3a);
+  --stat-blue-border: rgba(69, 159, 255, 0.10);
+  --stat-blue-color: #459FFF;
+  --stat-blue-glow: rgba(69, 159, 255, 0.08);
+}
+
+/* ===== LIGHT MODE ===== */
+[data-theme="light"] {
+  --text-primary: #0A0A0A;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --border-color: #e2e8f0;
+  --bg-card: #FFFFFF;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --card-hover: rgba(0, 0, 0, 0.02);
+  --bg-glass: #FFFFFF;
+  
+  --stat-gold-bg: linear-gradient(145deg, #fef9e7, #fdf2d0);
+  --stat-gold-border: #fcd34d;
+  --stat-gold-color: #B45309;
+  --stat-gold-glow: rgba(251, 191, 36, 0.10);
+  
+  --stat-green-bg: linear-gradient(145deg, #d1fae5, #a7f3d0);
+  --stat-green-border: #34d399;
+  --stat-green-color: #065F46;
+  --stat-green-glow: rgba(52, 211, 153, 0.10);
+  
+  --stat-red-bg: linear-gradient(145deg, #fee2e2, #fecaca);
+  --stat-red-border: #f87171;
+  --stat-red-color: #991B1B;
+  --stat-red-glow: rgba(248, 113, 113, 0.10);
+  
+  --stat-blue-bg: linear-gradient(145deg, #dbeafe, #bfdbfe);
+  --stat-blue-border: #60a5fa;
+  --stat-blue-color: #1D4ED8;
+  --stat-blue-glow: rgba(59, 130, 246, 0.10);
+}
+
+/* ===== CONTAINER ===== */
+.tenant-dashboard-new {
+  padding: 16px 20px 30px;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: calc(100vh - 60px);
+}
+
+/* ===== TOP BAR ===== */
+.dashboard-top-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 0;
+  padding-bottom: 16px;
   border-bottom: 1px solid var(--border-color);
   margin-bottom: 20px;
   flex-wrap: wrap;
   gap: 12px;
 }
 
-[data-theme="dark"] .tenant-welcome {
-  border-color: rgba(255, 255, 255, 0.06);
+.dashboard-greeting {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-[data-theme="light"] .tenant-welcome {
-  border-color: #e2e8f0;
-}
+.greeting-emoji { font-size: 32px; }
 
-.tenant-welcome-title {
-  font-size: 24px;
+.dashboard-greeting-title {
+  font-size: 22px;
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
+  line-height: 1.3;
 }
 
-[data-theme="light"] .tenant-welcome-title {
-  color: #0A0A0A;
-}
-
-.tenant-welcome-title .highlight {
+.greeting-name {
   background: linear-gradient(135deg, #6C63FF, #FF6B8A);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.tenant-welcome-sub {
-  color: var(--text-secondary);
-  font-size: 14px;
-  margin: 4px 0 0 0;
-  display: flex;
-  align-items: center;
-}
-
-[data-theme="light"] .tenant-welcome-sub {
-  color: #64748b;
-}
-
-.tenant-profile-badge {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 16px;
-  background: var(--bg-glass);
-  border-radius: 12px;
-  border: 1px solid var(--border-color);
-}
-
-[data-theme="dark"] .tenant-profile-badge {
-  background: rgba(255, 255, 255, 0.02);
-  border-color: rgba(255, 255, 255, 0.06);
-}
-
-[data-theme="light"] .tenant-profile-badge {
-  background: #f8fafc;
-  border-color: #e2e8f0;
-}
-
-.tenant-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #6C63FF, #4A42C4);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.tenant-badge-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-[data-theme="light"] .tenant-badge-name {
-  color: #0A0A0A;
-}
-
-.tenant-badge-role {
-  font-size: 11px;
+.dashboard-greeting-sub {
+  font-size: 13px;
   color: var(--text-muted);
+  margin: 0;
 }
 
-[data-theme="light"] .tenant-badge-role {
-  color: #94a3b8;
+.dashboard-top-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.room-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6C63FF;
+  background: rgba(108, 99, 255, 0.08);
+  border: 1px solid rgba(108, 99, 255, 0.08);
+}
+
+.rent-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #34D399;
+  background: rgba(52, 211, 153, 0.08);
+  border: 1px solid rgba(52, 211, 153, 0.08);
 }
 
 /* ===== STATS CARDS ===== */
-.stat-card {
-  border-radius: 12px;
-  padding: 14px 18px;
-  min-height: 78px;
+.stat-card-new {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 14px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
   transition: all 0.3s ease;
+  height: 100%;
+  box-shadow: var(--shadow);
   position: relative;
   overflow: hidden;
 }
 
-[data-theme="dark"] .stat-card {
-  border-color: rgba(255, 255, 255, 0.06);
-}
-
-[data-theme="light"] .stat-card {
-  border-color: #e2e8f0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.stat-card:hover {
+.stat-card-new:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
 }
 
-[data-theme="light"] .stat-card:hover {
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+/* Gold Card */
+.stat-card-new.stat-gold {
+  background: var(--stat-gold-bg);
+  border-color: var(--stat-gold-border);
 }
-
-.stat-card .stat-left {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.stat-card .stat-icon {
-  font-size: 20px;
-}
-
-[data-theme="dark"] .stat-card .stat-icon {
-  color: white !important;
-}
-
-[data-theme="light"] .stat-card .stat-icon {
-  color: #0A0A0A !important;
-}
-
-.stat-card .stat-right {
-  text-align: right;
-}
-
-.stat-card .stat-number {
-  font-size: 20px;
-  font-weight: 900;
-  letter-spacing: -0.3px;
-  line-height: 1.2;
-}
-
-[data-theme="dark"] .stat-card .stat-number {
-  color: white;
-}
-
-[data-theme="light"] .stat-card .stat-number {
-  color: #0A0A0A;
-}
-
-.stat-card .stat-label {
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 1.2;
-}
-
-[data-theme="dark"] .stat-card .stat-label {
-  color: rgba(255, 255, 255, 0.7);
-}
-
-[data-theme="light"] .stat-card .stat-label {
-  color: #64748b;
-}
-
-.stat-card .stat-change {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-[data-theme="dark"] .stat-card .stat-change {
-  color: rgba(255, 255, 255, 0.4);
-}
-
-[data-theme="light"] .stat-card .stat-change {
-  color: #94a3b8;
-}
-
-.stat-card .stat-glow {
+.stat-card-new.stat-gold .stat-icon-new { color: var(--stat-gold-color); }
+.stat-card-new.stat-gold .stat-value-new { color: var(--stat-gold-color); }
+.stat-card-new.stat-gold .stat-label-new { color: var(--text-secondary); }
+.stat-card-new.stat-gold::after {
+  content: '';
   position: absolute;
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  filter: blur(50px);
-  opacity: 0.08;
+  background: var(--stat-gold-glow);
+  filter: blur(40px);
   right: -20px;
   bottom: -20px;
   pointer-events: none;
 }
 
-[data-theme="light"] .stat-card .stat-glow {
-  opacity: 0.05;
+/* Green Card */
+.stat-card-new.stat-green {
+  background: var(--stat-green-bg);
+  border-color: var(--stat-green-border);
+}
+.stat-card-new.stat-green .stat-icon-new { color: var(--stat-green-color); }
+.stat-card-new.stat-green .stat-value-new { color: var(--stat-green-color); }
+.stat-card-new.stat-green .stat-label-new { color: var(--text-secondary); }
+.stat-card-new.stat-green::after {
+  content: '';
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--stat-green-glow);
+  filter: blur(40px);
+  right: -20px;
+  bottom: -20px;
+  pointer-events: none;
 }
 
-/* Card Colors - Dark Mode */
-[data-theme="dark"] .stat-card.card-gold {
-  background: linear-gradient(145deg, #1a1a2e, #16213e);
-  border-color: rgba(255, 215, 0, 0.12);
+/* Red Card */
+.stat-card-new.stat-red {
+  background: var(--stat-red-bg);
+  border-color: var(--stat-red-border);
 }
-[data-theme="dark"] .stat-card.card-gold .stat-number,
-[data-theme="dark"] .stat-card.card-gold .stat-label,
-[data-theme="dark"] .stat-card.card-gold .stat-icon {
-  color: #FFD700 !important;
-}
-[data-theme="dark"] .stat-card.card-gold .stat-glow {
-  background: radial-gradient(circle, rgba(255, 215, 0, 0.15), transparent 70%);
-}
-
-[data-theme="dark"] .stat-card.card-green {
-  background: linear-gradient(145deg, #0a1a0a, #0d2e1a);
-  border-color: rgba(0, 255, 127, 0.10);
-}
-[data-theme="dark"] .stat-card.card-green .stat-number,
-[data-theme="dark"] .stat-card.card-green .stat-label,
-[data-theme="dark"] .stat-card.card-green .stat-icon {
-  color: #00FF7F !important;
-}
-[data-theme="dark"] .stat-card.card-green .stat-glow {
-  background: radial-gradient(circle, rgba(0, 255, 127, 0.15), transparent 70%);
+.stat-card-new.stat-red .stat-icon-new { color: var(--stat-red-color); }
+.stat-card-new.stat-red .stat-value-new { color: var(--stat-red-color); }
+.stat-card-new.stat-red .stat-label-new { color: var(--text-secondary); }
+.stat-card-new.stat-red::after {
+  content: '';
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--stat-red-glow);
+  filter: blur(40px);
+  right: -20px;
+  bottom: -20px;
+  pointer-events: none;
 }
 
-[data-theme="dark"] .stat-card.card-rose {
-  background: linear-gradient(145deg, #2a0a0a, #3a0d0d);
-  border-color: rgba(255, 100, 100, 0.10);
+/* Blue Card */
+.stat-card-new.stat-blue {
+  background: var(--stat-blue-bg);
+  border-color: var(--stat-blue-border);
 }
-[data-theme="dark"] .stat-card.card-rose .stat-number,
-[data-theme="dark"] .stat-card.card-rose .stat-label,
-[data-theme="dark"] .stat-card.card-rose .stat-icon {
-  color: #FF6B6B !important;
-}
-[data-theme="dark"] .stat-card.card-rose .stat-glow {
-  background: radial-gradient(circle, rgba(255, 100, 100, 0.15), transparent 70%);
-}
-
-[data-theme="dark"] .stat-card.card-blue {
-  background: linear-gradient(145deg, #0a0a1a, #0d1a3a);
-  border-color: rgba(69, 159, 255, 0.10);
-}
-[data-theme="dark"] .stat-card.card-blue .stat-number,
-[data-theme="dark"] .stat-card.card-blue .stat-label,
-[data-theme="dark"] .stat-card.card-blue .stat-icon {
-  color: #459FFF !important;
-}
-[data-theme="dark"] .stat-card.card-blue .stat-glow {
-  background: radial-gradient(circle, rgba(69, 159, 255, 0.15), transparent 70%);
+.stat-card-new.stat-blue .stat-icon-new { color: var(--stat-blue-color); }
+.stat-card-new.stat-blue .stat-value-new { color: var(--stat-blue-color); }
+.stat-card-new.stat-blue .stat-label-new { color: var(--text-secondary); }
+.stat-card-new.stat-blue::after {
+  content: '';
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--stat-blue-glow);
+  filter: blur(40px);
+  right: -20px;
+  bottom: -20px;
+  pointer-events: none;
 }
 
-/* Card Colors - Light Mode */
-[data-theme="light"] .stat-card.card-gold {
-  background: linear-gradient(145deg, #fef9e7, #fdf2d0);
-  border-color: #fcd34d;
-}
-[data-theme="light"] .stat-card.card-gold .stat-number,
-[data-theme="light"] .stat-card.card-gold .stat-label,
-[data-theme="light"] .stat-card.card-gold .stat-icon {
-  color: #B45309 !important;
-}
-[data-theme="light"] .stat-card.card-gold .stat-glow {
-  background: radial-gradient(circle, rgba(251, 191, 36, 0.15), transparent 70%);
+.stat-icon-new {
+  font-size: 20px;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
 }
 
-[data-theme="light"] .stat-card.card-green {
-  background: linear-gradient(145deg, #d1fae5, #a7f3d0);
-  border-color: #34d399;
-}
-[data-theme="light"] .stat-card.card-green .stat-number,
-[data-theme="light"] .stat-card.card-green .stat-label,
-[data-theme="light"] .stat-card.card-green .stat-icon {
-  color: #065F46 !important;
-}
-[data-theme="light"] .stat-card.card-green .stat-glow {
-  background: radial-gradient(circle, rgba(52, 211, 153, 0.15), transparent 70%);
+.stat-info-new { flex: 1; min-width: 0; }
+
+.stat-value-new {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
-[data-theme="light"] .stat-card.card-rose {
-  background: linear-gradient(145deg, #fee2e2, #fecaca);
-  border-color: #f87171;
-}
-[data-theme="light"] .stat-card.card-rose .stat-number,
-[data-theme="light"] .stat-card.card-rose .stat-label,
-[data-theme="light"] .stat-card.card-rose .stat-icon {
-  color: #991B1B !important;
-}
-[data-theme="light"] .stat-card.card-rose .stat-glow {
-  background: radial-gradient(circle, rgba(248, 113, 113, 0.15), transparent 70%);
+.stat-label-new {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
 }
 
-[data-theme="light"] .stat-card.card-blue {
-  background: linear-gradient(145deg, #dbeafe, #bfdbfe);
-  border-color: #60a5fa;
-}
-[data-theme="light"] .stat-card.card-blue .stat-number,
-[data-theme="light"] .stat-card.card-blue .stat-label,
-[data-theme="light"] .stat-card.card-blue .stat-icon {
-  color: #1D4ED8 !important;
-}
-[data-theme="light"] .stat-card.card-blue .stat-glow {
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.15), transparent 70%);
-}
-
-/* ===== CURRENT BILL CARD ===== */
-.current-bill-card {
-  padding: 16px 20px;
-  background: var(--bg-glass);
-  border-radius: 12px;
-  border: 1px solid var(--border-color);
-}
-
-[data-theme="dark"] .current-bill-card {
-  background: rgba(255, 255, 255, 0.02);
-  border-color: rgba(255, 255, 255, 0.06);
-}
-
-[data-theme="light"] .current-bill-card {
-  background: #f8fafc;
-  border-color: #e2e8f0;
-}
-
-.bill-detail-item {
+/* ===== DUE DATE CARD ===== */
+.due-date-card-new {
   display: flex;
   justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border-color);
+  align-items: center;
+  padding: 14px 18px;
+  background: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+  height: 100%;
 }
 
-[data-theme="dark"] .bill-detail-item {
-  border-color: rgba(255, 255, 255, 0.04);
-}
-
-[data-theme="light"] .bill-detail-item {
-  border-color: #e8ecf0;
-}
-
-.bill-detail-item:last-child {
-  border-bottom: none;
-}
-
-.bill-detail-label {
-  color: var(--text-secondary);
-  font-size: 13px;
-}
-
-[data-theme="light"] .bill-detail-label {
-  color: #64748b;
-}
-
-.bill-detail-value {
-  color: var(--text-primary);
-  font-weight: 600;
-  font-size: 13px;
-}
-
-[data-theme="light"] .bill-detail-value {
-  color: #0A0A0A;
-}
-
-.bill-summary-col {
+.due-date-left {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: center;
+  align-items: center;
   gap: 12px;
 }
 
-.bill-total-box {
-  text-align: center;
-  padding: 8px 16px;
-  background: rgba(108, 99, 255, 0.06);
-  border-radius: 10px;
-  border: 1px solid rgba(108, 99, 255, 0.08);
-}
+.due-date-icon { color: #6C63FF; }
 
-[data-theme="light"] .bill-total-box {
-  background: rgba(108, 99, 255, 0.04);
-}
-
-.bill-total-amount {
-  font-size: 24px;
-  font-weight: 800;
-  color: #6C63FF;
-}
-
-.bill-total-label {
+.due-date-label {
   font-size: 11px;
   color: var(--text-muted);
 }
 
-[data-theme="light"] .bill-total-label {
-  color: #94a3b8;
+.due-date-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
-.bill-status-box {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.btn-pay-now {
-  background: linear-gradient(135deg, #34D399, #059669);
-  border: none;
-  color: white;
-  padding: 6px 20px;
+.due-date-right {
+  background: rgba(108, 99, 255, 0.08);
+  padding: 4px 14px;
   border-radius: 20px;
   font-size: 13px;
   font-weight: 600;
+  color: #6C63FF;
+}
+
+/* ===== PENDING ALERT ===== */
+.pending-alert-new {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  height: 100%;
+  background: rgba(239, 68, 68, 0.06);
+  border-radius: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.12);
+}
+
+.pending-alert-icon {
+  color: #EF4444;
+  flex-shrink: 0;
+}
+
+.pending-alert-content { flex: 1; min-width: 0; }
+
+.pending-alert-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #EF4444;
+}
+
+.pending-alert-detail {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.pending-alert-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #EF4444;
+  border: none;
+  color: white;
+  padding: 4px 14px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 16px rgba(52, 211, 153, 0.25);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.btn-pay-now:hover {
+.pending-alert-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(52, 211, 153, 0.35);
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3);
 }
 
-.paid-date-text {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-[data-theme="light"] .paid-date-text {
-  color: #94a3b8;
-}
-
-/* ===== TABLE WRAP ===== */
-.table-wrap {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
+/* ===== ALL CLEAR ===== */
+.all-clear-alert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  height: 100%;
+  background: rgba(16, 185, 129, 0.06);
   border-radius: 12px;
-  padding: 10px;
-  overflow: hidden;
+  border: 1px solid rgba(16, 185, 129, 0.12);
+}
+
+.all-clear-icon { font-size: 24px; }
+
+.all-clear-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #10B981;
+}
+
+.all-clear-detail {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* ===== DUES TABLE ===== */
+.dues-table-card {
+  background: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
   box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 16px;
 }
 
-[data-theme="dark"] .table-wrap {
-  background: #0A0E1A;
-  border-color: rgba(255, 255, 255, 0.06);
-}
-
-[data-theme="light"] .table-wrap {
-  background: #FFFFFF;
-  border-color: #e2e8f0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.table-header {
+.dues-table-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 4px 8px 10px 8px;
+  padding: 12px 18px;
   border-bottom: 1px solid var(--border-color);
-  margin-bottom: 8px;
-  flex-wrap: wrap;
+}
+
+.dues-table-title {
+  display: flex;
+  align-items: center;
   gap: 8px;
-}
-
-[data-theme="dark"] .table-header {
-  border-color: rgba(255, 255, 255, 0.06);
-}
-
-[data-theme="light"] .table-header {
-  border-color: #e2e8f0;
-}
-
-.table-header h6 {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-primary);
-  margin: 0;
 }
 
-[data-theme="light"] .table-header h6 {
-  color: #0A0A0A;
-}
-
-.room-count {
+.dues-table-count {
   font-size: 12px;
   color: var(--text-muted);
-  background: var(--bg-glass);
   padding: 2px 12px;
+  background: var(--bg-glass);
   border-radius: 20px;
 }
 
-[data-theme="dark"] .room-count {
-  background: rgba(255, 255, 255, 0.03);
-  color: #94a3b8;
+.dues-table-body { padding: 0; overflow-x: auto; }
+
+.dues-table {
+  margin: 0;
+  font-size: 13px;
+  background: transparent;
 }
 
-[data-theme="light"] .room-count {
-  background: #f1f5f9;
-  color: #64748b;
-}
-
-/* ===== BADGE STATUS ===== */
-.badge-status {
-  padding: 4px 14px;
-  border-radius: 50px;
-  font-size: 12px;
+.dues-table thead th {
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-muted);
   font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+  padding: 10px 12px;
+  background: var(--bg-glass);
   white-space: nowrap;
 }
 
-[data-theme="dark"] .badge-status.paid {
+[data-theme="light"] .dues-table thead th {
+  background: #f8fafc;
+}
+
+.dues-table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  vertical-align: middle;
+}
+
+.dues-table tbody tr:hover {
+  background: var(--card-hover);
+}
+
+.dues-month {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.dues-amount {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.dues-pending-amount {
+  font-weight: 700;
+  color: #EF4444;
+}
+
+.dues-pending-amount.paid { color: #10B981; }
+
+.badge-status-new {
+  padding: 3px 12px;
+  border-radius: 50px;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.badge-status-new.paid {
   background: rgba(52, 211, 153, 0.12);
   color: #34D399;
-  border: 1px solid rgba(52, 211, 153, 0.12);
 }
 
-[data-theme="light"] .badge-status.paid {
-  background: rgba(52, 211, 153, 0.08);
-  color: #0D9488;
-  border: 1px solid rgba(52, 211, 153, 0.08);
-}
-
-[data-theme="dark"] .badge-status.pending {
+.badge-status-new.pending {
   background: rgba(251, 191, 36, 0.12);
   color: #FBBF24;
-  border: 1px solid rgba(251, 191, 36, 0.12);
 }
 
-[data-theme="light"] .badge-status.pending {
-  background: rgba(251, 191, 36, 0.08);
-  color: #B45309;
-  border: 1px solid rgba(251, 191, 36, 0.08);
+/* ===== RECENT PAYMENTS ===== */
+.recent-payments-new {
+  background: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 16px;
 }
 
-/* ===== QUICK ACTIONS ===== */
-.quick-actions {
-  margin-top: 20px;
-}
-
-.quick-actions-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 12px;
-}
-
-[data-theme="light"] .quick-actions-title {
-  color: #0A0A0A;
-}
-
-.quick-actions-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 12px;
-}
-
-.quick-action-card {
+.recent-payments-header {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.recent-payments-title {
+  display: flex;
   align-items: center;
   gap: 8px;
-  padding: 16px;
-  background: var(--bg-glass);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.recent-view-all {
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: #6C63FF;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
-[data-theme="dark"] .quick-action-card {
-  background: rgba(255, 255, 255, 0.02);
-  border-color: rgba(255, 255, 255, 0.06);
+.recent-view-all:hover { color: #4A42C4; }
+
+.recent-payments-list { padding: 4px 12px; }
+
+.recent-payment-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 6px;
+  border-bottom: 1px solid var(--border-color);
 }
 
-[data-theme="light"] .quick-action-card {
-  background: #f8fafc;
-  border-color: #e2e8f0;
+.recent-payment-item:last-child { border-bottom: none; }
+
+.recent-payment-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.quick-action-card:hover {
-  transform: translateY(-4px);
-  border-color: #6C63FF;
-  box-shadow: 0 8px 24px rgba(108, 99, 255, 0.08);
-}
-
-[data-theme="light"] .quick-action-card:hover {
-  box-shadow: 0 8px 24px rgba(108, 99, 255, 0.06);
-}
-
-.quick-action-icon {
-  font-size: 28px;
-}
-
-.quick-action-label {
+.recent-payment-month {
   font-size: 13px;
-  font-weight: 600;
-  color: var(--text-secondary);
+  font-weight: 500;
+  color: var(--text-primary);
 }
 
-[data-theme="light"] .quick-action-label {
-  color: #475569;
-}
-
-/* ===== EMPTY STATE ===== */
-.empty-state {
-  text-align: center;
-  padding: 30px 20px;
-}
-
-.empty-state .empty-icon {
-  font-size: 36px;
-  margin-bottom: 8px;
-  opacity: 0.4;
-}
-
-.empty-state .empty-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  margin-bottom: 2px;
-}
-
-[data-theme="light"] .empty-state .empty-title {
-  color: #64748b;
-}
-
-.empty-state .empty-sub {
+.recent-payment-date {
   font-size: 12px;
   color: var(--text-muted);
 }
 
-[data-theme="light"] .empty-state .empty-sub {
-  color: #94a3b8;
+.recent-payment-amount {
+  font-size: 14px;
+  font-weight: 700;
+  color: #10B981;
 }
+
+/* ===== FOOTER ===== */
+.dashboard-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px 0 0;
+  margin-top: 4px;
+  border-top: 1px solid var(--border-color);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.dashboard-footer span { opacity: 0.7; }
 
 /* ========================================
    RESPONSIVE
    ======================================== */
+
+/* Tablet */
+@media (max-width: 992px) {
+  .tenant-dashboard-new { padding: 12px 16px; }
+  .dashboard-greeting-title { font-size: 19px; }
+  .stat-value-new { font-size: 17px; }
+  .stat-icon-new { font-size: 18px; }
+  .stat-card-new { padding: 14px 16px; }
+  .dues-table { font-size: 12px; }
+}
+
+/* Mobile */
 @media (max-width: 768px) {
-  .tenant-welcome {
+  .tenant-dashboard-new { padding: 10px 12px; }
+  
+  .dashboard-top-bar {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    gap: 10px;
   }
   
-  .tenant-welcome-title {
-    font-size: 20px;
+  .dashboard-greeting-title { font-size: 17px; }
+  .greeting-emoji { font-size: 26px; }
+  .dashboard-greeting-sub { font-size: 12px; }
+  
+  .dashboard-top-right {
+    justify-content: space-between;
+    flex-wrap: wrap;
   }
   
-  .tenant-profile-badge {
-    width: 100%;
+  .room-badge, .rent-badge {
+    font-size: 11px;
+    padding: 4px 10px;
   }
   
-  .stat-card {
+  .stat-card-new {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+  
+  .stat-value-new { font-size: 15px; }
+  .stat-icon-new {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+  .stat-label-new { font-size: 10px; }
+  
+  .due-date-card-new { padding: 10px 14px; }
+  .due-date-value { font-size: 13px; }
+  .due-date-days { font-size: 12px; }
+  
+  .pending-alert-new {
     padding: 10px 14px;
-    min-height: 65px;
+    flex-wrap: wrap;
   }
   
-  .stat-card .stat-number {
-    font-size: 17px;
+  .pending-alert-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 6px;
   }
   
-  .stat-card .stat-icon {
-    font-size: 17px;
+  .all-clear-alert { padding: 10px 14px; }
+  
+  .dues-table-header { padding: 10px 14px; flex-wrap: wrap; gap: 6px; }
+  .dues-table-title { font-size: 13px; }
+  
+  .dues-table thead th {
+    padding: 8px 10px;
+    font-size: 11px;
   }
   
-  .current-bill-card {
-    padding: 12px 14px;
+  .dues-table tbody td {
+    padding: 8px 10px;
+    font-size: 12px;
   }
   
-  .bill-summary-col {
-    align-items: flex-start;
-    margin-top: 12px;
+  .dues-month { font-size: 12px; }
+  .dues-pending-amount { font-size: 13px; }
+  
+  .badge-status-new {
+    font-size: 10px;
+    padding: 2px 10px;
   }
   
-  .quick-actions-grid {
-    grid-template-columns: repeat(3, 1fr);
+  .recent-payments-header { padding: 8px 14px; }
+  .recent-payments-title { font-size: 13px; }
+  .recent-payment-item { padding: 8px 4px; flex-wrap: wrap; }
+  .recent-payment-month { font-size: 12px; }
+  .recent-payment-amount { font-size: 13px; }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+  .tenant-dashboard-new { padding: 8px; }
+  
+  .dashboard-greeting-title { font-size: 15px; }
+  .greeting-emoji { font-size: 22px; }
+  .dashboard-greeting-sub { font-size: 11px; }
+  
+  .stat-card-new {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+  
+  .stat-value-new { font-size: 13px; }
+  .stat-icon-new {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+  }
+  .stat-label-new { font-size: 9px; }
+  
+  .dues-table thead th {
+    font-size: 9px;
+    padding: 6px 6px;
+  }
+  
+  .dues-table tbody td {
+    font-size: 10px;
+    padding: 6px 6px;
+  }
+  
+  .dues-month { font-size: 10px; }
+  .dues-pending-amount { font-size: 11px; }
+  
+  .badge-status-new {
+    font-size: 8px;
+    padding: 2px 6px;
+  }
+  
+  .recent-payment-month { font-size: 11px; }
+  .recent-payment-date { font-size: 10px; }
+  .recent-payment-amount { font-size: 12px; }
+  
+  .dashboard-footer {
+    font-size: 10px;
+    gap: 6px;
+    flex-wrap: wrap;
   }
 }
 
-@media (max-width: 480px) {
-  .tenant-welcome-title {
-    font-size: 17px;
+/* ===== SCROLLBAR ===== */
+.tenant-dashboard-new::-webkit-scrollbar { width: 4px; }
+.tenant-dashboard-new::-webkit-scrollbar-track { background: transparent; }
+.tenant-dashboard-new::-webkit-scrollbar-thumb {
+  background: rgba(108, 99, 255, 0.3);
+  border-radius: 10px;
+}
+.tenant-dashboard-new::-webkit-scrollbar-thumb:hover {
+  background: rgba(108, 99, 255, 0.5);
+}
+
+/* ===== PRINT ===== */
+@media print {
+  .tenant-dashboard-new { padding: 0; background: white; }
+  .dashboard-top-bar, .dashboard-footer { display: none !important; }
+  .stat-card-new, .due-date-card-new, .dues-table-card, .recent-payments-new {
+    box-shadow: none !important;
+    border-color: #e2e8f0 !important;
   }
-  
-  .stat-card {
-    padding: 6px 10px;
-    min-height: 55px;
-  }
-  
-  .stat-card .stat-number {
-    font-size: 15px;
-  }
-  
-  .stat-card .stat-icon {
-    font-size: 14px;
-  }
-  
-  .stat-card .stat-label {
-    font-size: 9px;
-  }
-  
-  .quick-actions-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  
-  .bill-total-amount {
-    font-size: 20px;
-  }
-  
-  .btn-pay-now {
-    padding: 4px 14px;
-    font-size: 12px;
-  }
+  .pending-alert-btn { display: none !important; }
 }

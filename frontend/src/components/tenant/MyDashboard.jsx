@@ -1,16 +1,22 @@
 // src/components/tenant/MyDashboard.jsx
 
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Spinner, Alert } from 'react-bootstrap';
+import { Row, Col, Spinner, Alert, Table } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { 
-  FiHome, 
   FiDollarSign, 
   FiCheckCircle, 
-  FiClock,
-  FiCalendar,
+  FiClock, 
+  FiFileText,
+  FiHome,
+  FiCreditCard,
   FiUser,
-  FiMapPin,
+  FiCalendar,
+  FiZap,
+  FiAlertTriangle,
+  FiChevronRight,
+  FiArrowRight,
+  FiRefreshCw,
   FiTrendingUp
 } from 'react-icons/fi';
 import { tenantAPI } from '../../services/api';
@@ -20,14 +26,20 @@ const MyDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [tenantData, setTenantData] = useState(null);
-  const [billsData, setBillsData] = useState(null);
+  const [billsData, setBillsData] = useState([]);
   const [currentBill, setCurrentBill] = useState(null);
+  const [pendingDues, setPendingDues] = useState([]);
+  const [recentPayments, setRecentPayments] = useState([]);
+  const [showAllPending, setShowAllPending] = useState(false);
+  const [showPaymentHistory, setShowPaymentHistory] = useState(false);
+  
   const [stats, setStats] = useState({
     totalBills: 0,
     totalPaid: 0,
     totalPending: 0,
     paidCount: 0,
     pendingCount: 0,
+    previousPending: 0,
   });
   
   const navigate = useNavigate();
@@ -44,21 +56,31 @@ const MyDashboard = () => {
       setTenantData(profileRes.data);
       
       const billsRes = await tenantAPI.getBills();
-      setBillsData(billsRes.data.bills || []);
-      
       const bills = billsRes.data.bills || [];
+      setBillsData(bills);
+      
       const summary = billsRes.data.summary || {};
+      
+      const currentMonthBill = bills.find(b => !b.is_paid) || bills[0] || null;
+      setCurrentBill(currentMonthBill);
+      
+      const previousPending = bills.filter(b => !b.is_paid && b.month !== currentMonthBill?.month);
+      setPendingDues(previousPending);
+      
+      const paidBills = bills.filter(b => b.is_paid).slice(0, 5);
+      setRecentPayments(paidBills);
+      
+      const totalPending = summary.total_pending || 0;
+      const previousPendingTotal = previousPending.reduce((sum, b) => sum + b.remaining, 0);
       
       setStats({
         totalBills: summary.total_bills || 0,
         totalPaid: summary.total_paid || 0,
-        totalPending: summary.total_pending || 0,
+        totalPending: totalPending,
         paidCount: summary.paid_count || 0,
         pendingCount: summary.pending_count || 0,
+        previousPending: previousPendingTotal,
       });
-      
-      const currentMonthBill = bills.find(b => !b.is_paid) || bills[0] || null;
-      setCurrentBill(currentMonthBill);
       
       setError(null);
     } catch (err) {
@@ -87,6 +109,33 @@ const MyDashboard = () => {
     navigate('/tenant-payment', { state: { billId } });
   };
 
+  const handlePayAll = () => {
+    navigate('/tenant-payment', { state: { payAll: true } });
+  };
+
+  const getNextDueDate = () => {
+    const now = new Date();
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const diffDays = Math.ceil((nextMonth - now) / (1000 * 60 * 60 * 24));
+    return { date: nextMonth, days: diffDays };
+  };
+
+  const nextDue = getNextDueDate();
+
+  // 🔥 Format month to DD/MM/YYYY
+  const formatMonth = (monthStr) => {
+    try {
+      const date = new Date(monthStr);
+      if (isNaN(date.getTime())) return monthStr;
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    } catch {
+      return monthStr;
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-center mt-5">
@@ -98,20 +147,9 @@ const MyDashboard = () => {
 
   if (error) {
     return (
-      <Alert variant="danger" className="mt-4" style={{ 
-        background: 'rgba(248, 113, 113, 0.08)',
-        border: '1px solid rgba(248, 113, 113, 0.1)',
-        borderRadius: '10px',
-        color: '#F87171'
-      }}>
+      <Alert variant="danger" className="mt-4">
         {error}
-        <button 
-          className="btn-primary-gradient ms-3" 
-          onClick={fetchDashboardData}
-          style={{ padding: '4px 16px', fontSize: '12px' }}
-        >
-          Retry
-        </button>
+        <button className="btn btn-link" onClick={fetchDashboardData}>Retry</button>
       </Alert>
     );
   }
@@ -126,175 +164,204 @@ const MyDashboard = () => {
 
   const statItems = [
     { 
-      icon: <FiDollarSign size={22} />, 
-      number: `₹${formatAmount(stats.totalBills)}`, 
-      label: 'Total Bills', 
-      change: 'Overall',
-      cardClass: 'card-gold' 
+      icon: <FiDollarSign size={20} />, 
+      value: `₹${formatAmount(stats.totalBills)}`, 
+      label: 'Total Bills',
+      cardClass: 'stat-gold'
     },
     { 
-      icon: <FiCheckCircle size={22} />, 
-      number: `₹${formatAmount(stats.totalPaid)}`, 
-      label: 'Total Paid', 
-      change: 'All Months',
-      cardClass: 'card-green' 
+      icon: <FiCheckCircle size={20} />, 
+      value: `₹${formatAmount(stats.totalPaid)}`, 
+      label: 'Total Paid',
+      cardClass: 'stat-green'
     },
     { 
-      icon: <FiClock size={22} />, 
-      number: `₹${formatAmount(stats.totalPending)}`, 
-      label: 'Total Pending', 
-      change: 'Due Amount',
-      cardClass: 'card-rose' 
+      icon: <FiClock size={20} />, 
+      value: `₹${formatAmount(stats.totalPending)}`, 
+      label: 'Total Pending',
+      cardClass: 'stat-red'
     },
     { 
-      icon: <FiTrendingUp size={22} />, 
-      number: stats.pendingCount, 
-      label: 'Pending Bills', 
-      change: 'Due Count',
-      cardClass: 'card-blue' 
+      icon: <FiFileText size={20} />, 
+      value: stats.pendingCount, 
+      label: 'Pending Bills',
+      cardClass: 'stat-blue'
     },
   ];
 
   return (
-    <div className="fade-in-up tenant-dashboard">
-      {/* Welcome Section */}
-      <div className="tenant-welcome">
-        <div>
-          <h1 className="tenant-welcome-title">
-            👋 Welcome, <span className="highlight">{tenantData.name}</span>
-          </h1>
-          <p className="tenant-welcome-sub">
-            <FiMapPin size={16} style={{ marginRight: '4px' }} />
-            Room {tenantData.room_number} • ₹{formatAmount(tenantData.room_rent)}/month
-          </p>
+    <div className="tenant-dashboard-new">
+      {/* TOP BAR */}
+      <div className="dashboard-top-bar">
+        <div className="dashboard-greeting">
+          <span className="greeting-emoji">👋</span>
+          <div>
+            <h1 className="dashboard-greeting-title">
+              Hello, <span className="greeting-name">{tenantData.name}</span>
+            </h1>
+            <p className="dashboard-greeting-sub">Welcome back! Here's your rent summary</p>
+          </div>
         </div>
-        <div className="tenant-profile-badge">
-          <div className="tenant-avatar">
-            {tenantData.name?.charAt(0) || 'T'}
-          </div>
-          <div className="tenant-badge-info">
-            <div className="tenant-badge-name">{tenantData.name}</div>
-            <div className="tenant-badge-role">Tenant</div>
-          </div>
+        <div className="dashboard-top-right">
+          <div className="room-badge"><FiHome size={16} /> Room {tenantData.room_number}</div>
+          <div className="rent-badge"><FiZap size={16} /> ₹{formatAmount(tenantData.room_rent)}/month</div>
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* STATS */}
       <Row className="g-3 mb-4">
         {statItems.map((stat, index) => (
           <Col md={3} sm={6} xs={6} key={index}>
-            <div className={`stat-card ${stat.cardClass}`}>
-              <div className="stat-left">
-                <div className="stat-icon">{stat.icon}</div>
-                <span className="stat-change">{stat.change}</span>
+            <div className={`stat-card-new ${stat.cardClass}`}>
+              <div className="stat-icon-new">{stat.icon}</div>
+              <div className="stat-info-new">
+                <div className="stat-value-new">{stat.value}</div>
+                <div className="stat-label-new">{stat.label}</div>
               </div>
-              <div className="stat-right">
-                <div className="stat-number">{stat.number}</div>
-                <div className="stat-label">{stat.label}</div>
-              </div>
-              <div className="stat-glow" />
             </div>
           </Col>
         ))}
       </Row>
 
-      {/* Current Bill Section */}
-      <div className="table-wrap mb-4">
-        <div className="table-header">
-          <h6>📋 Current Month Bill</h6>
-          <span className="room-count">
-            {currentBill?.month || 'No bill'}
-          </span>
+      {/* DUE DATE + PENDING ALERT */}
+      <Row className="g-3 mb-3">
+        <Col md={6}>
+          <div className="due-date-card-new">
+            <div className="due-date-left">
+              <FiCalendar size={20} className="due-date-icon" />
+              <div>
+                <div className="due-date-label">Next Rent Due</div>
+                <div className="due-date-value">
+                  {nextDue.date.toLocaleDateString('en-IN', { 
+                    day: '2-digit', 
+                    month: 'short', 
+                    year: 'numeric' 
+                  })}
+                </div>
+              </div>
+            </div>
+            <div className="due-date-right">{nextDue.days} days left</div>
+          </div>
+        </Col>
+        <Col md={6}>
+          {stats.previousPending > 0 ? (
+            <div className="pending-alert-new">
+              <FiAlertTriangle size={20} className="pending-alert-icon" />
+              <div className="pending-alert-content">
+                <div className="pending-alert-title">Pending Dues!</div>
+                <div className="pending-alert-detail">
+                  ₹{formatAmount(stats.previousPending)} from {pendingDues.length} months
+                </div>
+              </div>
+              <button className="pending-alert-btn" onClick={handlePayAll}>
+                Pay All <FiChevronRight size={14} />
+              </button>
+            </div>
+          ) : (
+            <div className="all-clear-alert">
+              <span className="all-clear-icon">🎉</span>
+              <div>
+                <div className="all-clear-title">All Clear!</div>
+                <div className="all-clear-detail">No pending dues</div>
+              </div>
+            </div>
+          )}
+        </Col>
+      </Row>
+
+      {/* ====== PENDING DUES TABLE ====== */}
+      <div className="dues-table-card">
+        <div className="dues-table-header">
+          <div className="dues-table-title">
+            <FiFileText size={18} />
+            <span>Pending Dues Summary</span>
+          </div>
+          <span className="dues-table-count">{billsData.length} bills</span>
         </div>
-        
-        {currentBill ? (
-          <div className="current-bill-card">
-            <Row>
-              <Col md={6}>
-                <div className="bill-detail-item">
-                  <span className="bill-detail-label">Month</span>
-                  <span className="bill-detail-value">{currentBill.month}</span>
-                </div>
-                <div className="bill-detail-item">
-                  <span className="bill-detail-label">Room Rent</span>
-                  <span className="bill-detail-value">₹{formatAmount(currentBill.room_rent)}</span>
-                </div>
-                <div className="bill-detail-item">
-                  <span className="bill-detail-label">Electricity</span>
-                  <span className="bill-detail-value">₹{formatAmount(currentBill.electricity_charge)}</span>
-                </div>
-                <div className="bill-detail-item">
-                  <span className="bill-detail-label">Units Consumed</span>
-                  <span className="bill-detail-value">{currentBill.units_consumed}</span>
-                </div>
-              </Col>
-              <Col md={6} className="bill-summary-col">
-                <div className="bill-total-box">
-                  <div className="bill-total-amount">
-                    ₹{formatAmount(currentBill.total_amount)}
-                  </div>
-                  <div className="bill-total-label">Total Amount</div>
-                </div>
-                <div className="bill-status-box">
-                  <span className={`badge-status ${getStatusBadge(currentBill.is_paid).class}`}>
-                    {getStatusBadge(currentBill.is_paid).label}
-                  </span>
-                  {!currentBill.is_paid && (
-                    <button 
-                      className="btn-pay-now"
-                      onClick={() => handlePayBill(currentBill.id)}
-                    >
-                      Pay Now
-                    </button>
-                  )}
-                  {currentBill.is_paid && (
-                    <span className="paid-date-text">
-                      Paid on {new Date(currentBill.paid_date).toLocaleDateString('en-IN', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric'
-                      })}
-                    </span>
-                  )}
-                </div>
-              </Col>
-            </Row>
-          </div>
-        ) : (
-          <div className="empty-state">
-            <div className="empty-icon">📋</div>
-            <div className="empty-title">No bills found</div>
-            <div className="empty-sub">Your bills will appear here once generated.</div>
-          </div>
-        )}
+        <div className="dues-table-body">
+          <Table responsive className="dues-table">
+            <thead>
+              <tr>
+                <th>Month</th>
+                <th>Rent</th>
+                <th>Electricity</th>
+                <th>Total</th>
+                <th>Paid</th>
+                <th>Pending</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {billsData.length > 0 ? (
+                billsData.map((bill) => (
+                  <tr key={bill.id}>
+                    <td className="dues-month">{formatMonth(bill.month)}</td>
+                    <td className="dues-amount">₹{formatAmount(bill.room_rent)}</td>
+                    <td className="dues-amount">₹{formatAmount(bill.electricity_charge)}</td>
+                    <td className="dues-amount">₹{formatAmount(bill.total_amount)}</td>
+                    <td className="dues-amount">₹{formatAmount(bill.paid_amount)}</td>
+                    <td className="dues-pending-amount">₹{formatAmount(bill.remaining)}</td>
+                    <td>
+                      <span className={`badge-status-new ${getStatusBadge(bill.is_paid).class}`}>
+                        {getStatusBadge(bill.is_paid).label}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="7" className="text-center py-4 text-muted">
+                    No bills found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </Table>
+        </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="quick-actions">
-        <div className="quick-actions-title">Quick Actions</div>
-        <div className="quick-actions-grid">
-          <div 
-            className="quick-action-card"
-            onClick={() => navigate('/tenant-bills')}
-          >
-            <div className="quick-action-icon">📊</div>
-            <div className="quick-action-label">My Bills</div>
+      {/* RECENT PAYMENTS */}
+      {recentPayments.length > 0 && (
+        <div className="recent-payments-new">
+          <div className="recent-payments-header">
+            <div className="recent-payments-title">
+              <FiTrendingUp size={18} />
+              <span>Recent Payments</span>
+            </div>
+            <button 
+              className="recent-view-all" 
+              onClick={() => setShowPaymentHistory(!showPaymentHistory)}
+            >
+              {showPaymentHistory ? 'Show Less' : 'View All'} 
+              <FiArrowRight size={14} />
+            </button>
           </div>
-          <div 
-            className="quick-action-card"
-            onClick={() => navigate('/tenant-payment')}
-          >
-            <div className="quick-action-icon">💰</div>
-            <div className="quick-action-label">Pay Bill</div>
-          </div>
-          <div 
-            className="quick-action-card"
-            onClick={() => navigate('/tenant-profile')}
-          >
-            <div className="quick-action-icon">👤</div>
-            <div className="quick-action-label">My Profile</div>
+          <div className="recent-payments-list">
+            {(showPaymentHistory ? recentPayments : recentPayments.slice(0, 3)).map((p) => (
+              <div key={p.id} className="recent-payment-item">
+                <div className="recent-payment-left">
+                  <span className="recent-payment-month">{formatMonth(p.month)}</span>
+                  <span className="recent-payment-date">
+                    {p.paid_date ? new Date(p.paid_date).toLocaleDateString('en-IN', { 
+                      day: '2-digit', 
+                      month: 'short' 
+                    }) : 'N/A'}
+                  </span>
+                </div>
+                <span className="recent-payment-amount">₹{formatAmount(p.total_amount)}</span>
+              </div>
+            ))}
           </div>
         </div>
+      )}
+
+      {/* FOOTER */}
+      <div className="dashboard-footer">
+        <span>🏠 RentFlow v2.0</span>
+        <span>•</span>
+        <span>🔒 Secured</span>
+        <span>•</span>
+        <span>Support: 24/7</span>
       </div>
     </div>
   );

@@ -1,9 +1,5 @@
 /* src/components/tenant/MyBills.css */
 
-/* ========================================
-   TENANT BILLS PAGE
-   ======================================== */
-
 .tenant-bills {
   padding: 0;
 }
@@ -47,6 +43,66 @@
 
 [data-theme="light"] .bills-subtitle {
   color: #64748b;
+}
+
+/* ===== HEADER ACTIONS ===== */
+.bills-header-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+}
+
+/* ===== ADD BILL BUTTON ===== */
+.btn-add-bill {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: linear-gradient(135deg, #6C63FF, #4A42C4) !important;
+  border: none !important;
+  color: #FFFFFF !important;
+  padding: 10px 22px !important;
+  border-radius: 10px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 16px rgba(108, 99, 255, 0.25) !important;
+  text-decoration: none !important;
+  z-index: 10 !important;
+  position: relative !important;
+}
+
+.btn-add-bill:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 28px rgba(108, 99, 255, 0.4) !important;
+  background: linear-gradient(135deg, #7C73FF, #5A52D4) !important;
+}
+
+.btn-add-bill:active {
+  transform: scale(0.97) !important;
+}
+
+/* ===== BACK TO DASHBOARD BUTTON ===== */
+.btn-back-dashboard {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background: var(--bg-glass) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-secondary) !important;
+  padding: 10px 20px !important;
+  border-radius: 10px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  text-decoration: none !important;
+}
+
+.btn-back-dashboard:hover {
+  border-color: #6C63FF !important;
+  color: #6C63FF !important;
 }
 
 /* ===== STATS CARDS ===== */
@@ -148,110 +204,373 @@
   opacity: 0.05;
 }
 
-/* Card Colors - Dark Mode */
-[data-theme="dark"] .stat-card.card-gold {
+/* Card Colors */
+[data-theme="dark"] .stat-card.stat-gold {
   background: linear-gradient(145deg, #1a1a2e, #16213e);
   border-color: rgba(255, 215, 0, 0.12);
 }
-[data-theme="dark"] .stat-card.card-gold .stat-number,
-[data-theme="dark"] .stat-card.card-gold .stat-label,
-[data-theme="dark"] .stat-card.card-gold .stat-icon {
+[data-theme="dark"] .stat-card.stat-gold .stat-number,
+[data-theme="dark"] .stat-card.stat-gold .stat-label,
+[data-theme="dark"] .stat-card.stat-gold .stat-icon {
   color: #FFD700 !important;
 }
-[data-theme="dark"] .stat-card.card-gold .stat-glow {
+[data-theme="dark"] .stat-card.stat-gold .stat-glow {
   background: radial-gradient(circle, rgba(255, 215, 0, 0.15), transparent 70%);
 }
 
-[data-theme="dark"] .stat-card.card-green {
+[data-theme="dark"] .stat-card.stat-green {
   background: linear-gradient(145deg, #0a1a0a, #0d2e1a);
   border-color: rgba(0, 255, 127, 0.10);
 }
-[data-theme="dark"] .stat-card.card-green .stat-number,
-[data-theme="dark"] .stat-card.card-green .stat-label,
-[data-theme="dark"] .stat-card.card-green .stat-icon {
+[data-theme="dark"] .stat-card.stat-green .stat-number,
+[data-theme="dark"] .stat-card.stat-green .stat-label,
+[data-theme="dark"] .stat-card.stat-green .stat-icon {
   color: #00FF7F !important;
 }
-[data-theme="dark"] .stat-card.card-green .stat-glow {
+[data-theme="dark"] .stat-card.stat-green .stat-glow {
   background: radial-gradient(circle, rgba(0, 255, 127, 0.15), transparent 70%);
 }
 
-[data-theme="dark"] .stat-card.card-rose {
+[data-theme="dark"] .stat-card.stat-red {
   background: linear-gradient(145deg, #2a0a0a, #3a0d0d);
   border-color: rgba(255, 100, 100, 0.10);
 }
-[data-theme="dark"] .stat-card.card-rose .stat-number,
-[data-theme="dark"] .stat-card.card-rose .stat-label,
-[data-theme="dark"] .stat-card.card-rose .stat-icon {
+[data-theme="dark"] .stat-card.stat-red .stat-number,
+[data-theme="dark"] .stat-card.stat-red .stat-label,
+[data-theme="dark"] .stat-card.stat-red .stat-icon {
   color: #FF6B6B !important;
 }
-[data-theme="dark"] .stat-card.card-rose .stat-glow {
+[data-theme="dark"] .stat-card.stat-red .stat-glow {
   background: radial-gradient(circle, rgba(255, 100, 100, 0.15), transparent 70%);
 }
 
-[data-theme="dark"] .stat-card.card-blue {
+[data-theme="dark"] .stat-card.stat-blue {
   background: linear-gradient(145deg, #0a0a1a, #0d1a3a);
   border-color: rgba(69, 159, 255, 0.10);
 }
-[data-theme="dark"] .stat-card.card-blue .stat-number,
-[data-theme="dark"] .stat-card.card-blue .stat-label,
-[data-theme="dark"] .stat-card.card-blue .stat-icon {
+[data-theme="dark"] .stat-card.stat-blue .stat-number,
+[data-theme="dark"] .stat-card.stat-blue .stat-label,
+[data-theme="dark"] .stat-card.stat-blue .stat-icon {
   color: #459FFF !important;
 }
-[data-theme="dark"] .stat-card.card-blue .stat-glow {
+[data-theme="dark"] .stat-card.stat-blue .stat-glow {
   background: radial-gradient(circle, rgba(69, 159, 255, 0.15), transparent 70%);
 }
 
-/* Card Colors - Light Mode */
-[data-theme="light"] .stat-card.card-gold {
+/* Light Mode */
+[data-theme="light"] .stat-card.stat-gold {
   background: linear-gradient(145deg, #fef9e7, #fdf2d0);
   border-color: #fcd34d;
 }
-[data-theme="light"] .stat-card.card-gold .stat-number,
-[data-theme="light"] .stat-card.card-gold .stat-label,
-[data-theme="light"] .stat-card.card-gold .stat-icon {
+[data-theme="light"] .stat-card.stat-gold .stat-number,
+[data-theme="light"] .stat-card.stat-gold .stat-label,
+[data-theme="light"] .stat-card.stat-gold .stat-icon {
   color: #B45309 !important;
 }
-[data-theme="light"] .stat-card.card-gold .stat-glow {
+[data-theme="light"] .stat-card.stat-gold .stat-glow {
   background: radial-gradient(circle, rgba(251, 191, 36, 0.15), transparent 70%);
 }
 
-[data-theme="light"] .stat-card.card-green {
+[data-theme="light"] .stat-card.stat-green {
   background: linear-gradient(145deg, #d1fae5, #a7f3d0);
   border-color: #34d399;
 }
-[data-theme="light"] .stat-card.card-green .stat-number,
-[data-theme="light"] .stat-card.card-green .stat-label,
-[data-theme="light"] .stat-card.card-green .stat-icon {
+[data-theme="light"] .stat-card.stat-green .stat-number,
+[data-theme="light"] .stat-card.stat-green .stat-label,
+[data-theme="light"] .stat-card.stat-green .stat-icon {
   color: #065F46 !important;
 }
-[data-theme="light"] .stat-card.card-green .stat-glow {
+[data-theme="light"] .stat-card.stat-green .stat-glow {
   background: radial-gradient(circle, rgba(52, 211, 153, 0.15), transparent 70%);
 }
 
-[data-theme="light"] .stat-card.card-rose {
+[data-theme="light"] .stat-card.stat-red {
   background: linear-gradient(145deg, #fee2e2, #fecaca);
   border-color: #f87171;
 }
-[data-theme="light"] .stat-card.card-rose .stat-number,
-[data-theme="light"] .stat-card.card-rose .stat-label,
-[data-theme="light"] .stat-card.card-rose .stat-icon {
+[data-theme="light"] .stat-card.stat-red .stat-number,
+[data-theme="light"] .stat-card.stat-red .stat-label,
+[data-theme="light"] .stat-card.stat-red .stat-icon {
   color: #991B1B !important;
 }
-[data-theme="light"] .stat-card.card-rose .stat-glow {
+[data-theme="light"] .stat-card.stat-red .stat-glow {
   background: radial-gradient(circle, rgba(248, 113, 113, 0.15), transparent 70%);
 }
 
-[data-theme="light"] .stat-card.card-blue {
+[data-theme="light"] .stat-card.stat-blue {
   background: linear-gradient(145deg, #dbeafe, #bfdbfe);
   border-color: #60a5fa;
 }
-[data-theme="light"] .stat-card.card-blue .stat-number,
-[data-theme="light"] .stat-card.card-blue .stat-label,
-[data-theme="light"] .stat-card.card-blue .stat-icon {
+[data-theme="light"] .stat-card.stat-blue .stat-number,
+[data-theme="light"] .stat-card.stat-blue .stat-label,
+[data-theme="light"] .stat-card.stat-blue .stat-icon {
   color: #1D4ED8 !important;
 }
-[data-theme="light"] .stat-card.card-blue .stat-glow {
+[data-theme="light"] .stat-card.stat-blue .stat-glow {
   background: radial-gradient(circle, rgba(59, 130, 246, 0.15), transparent 70%);
+}
+
+/* ===== ADD BILL FORM ===== */
+.add-bill-form-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+[data-theme="dark"] .add-bill-form-card {
+  background: #0A0E1A;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="light"] .add-bill-form-card {
+  background: #FFFFFF;
+  border-color: #e2e8f0;
+}
+
+.add-bill-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .add-bill-form-header {
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="light"] .add-bill-form-header {
+  border-color: #e2e8f0;
+}
+
+.add-bill-form-header h6 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+[data-theme="light"] .add-bill-form-header h6 {
+  color: #0A0A0A;
+}
+
+.form-close-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  transition: all 0.3s ease;
+}
+
+.form-close-btn:hover {
+  color: var(--text-primary);
+  transform: rotate(90deg);
+}
+
+[data-theme="light"] .form-close-btn:hover {
+  color: #0A0A0A;
+}
+
+.add-bill-form-body {
+  padding: 16px 18px;
+}
+
+.form-control-premium {
+  background: var(--bg-glass);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  padding: 8px 12px;
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .form-control-premium {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.06);
+  color: #FFFFFF;
+}
+
+[data-theme="light"] .form-control-premium {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #0A0A0A;
+}
+
+.form-control-premium:focus {
+  border-color: #6C63FF;
+  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+}
+
+.form-control-premium option {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .form-control-premium option {
+  background: #FFFFFF;
+  color: #0A0A0A;
+}
+
+.form-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+[data-theme="light"] .form-label {
+  color: #64748b;
+}
+
+.required {
+  color: #EF4444;
+}
+
+.bill-preview-item {
+  background: var(--bg-glass);
+  border-radius: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .bill-preview-item {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="light"] .bill-preview-item {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.bill-preview-item.highlight {
+  border-color: #6C63FF;
+}
+
+.bill-preview-item .preview-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: block;
+}
+
+[data-theme="light"] .bill-preview-item .preview-label {
+  color: #94a3b8;
+}
+
+.bill-preview-item .preview-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .bill-preview-item .preview-value {
+  color: #0A0A0A;
+}
+
+.bill-preview-item .preview-value.total {
+  color: #6C63FF;
+}
+
+.btn-calculate {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(108, 99, 255, 0.08);
+  border: 1px solid rgba(108, 99, 255, 0.15);
+  color: #6C63FF;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  justify-content: center;
+}
+
+.btn-calculate:hover {
+  background: rgba(108, 99, 255, 0.15);
+}
+
+.form-error {
+  color: #EF4444;
+  font-size: 13px;
+  padding: 4px 0;
+}
+
+.add-bill-form-footer {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .add-bill-form-footer {
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="light"] .add-bill-form-footer {
+  border-color: #e2e8f0;
+}
+
+.btn-save-bill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #6C63FF, #4A42C4);
+  border: none;
+  color: white;
+  padding: 8px 24px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-save-bill:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(108, 99, 255, 0.3);
+}
+
+.btn-save-bill:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-cancel-form {
+  background: var(--bg-glass);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .btn-cancel-form {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.06);
+  color: #94a3b8;
+}
+
+[data-theme="light"] .btn-cancel-form {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #475569;
+}
+
+.btn-cancel-form:hover {
+  border-color: #EF4444;
+  color: #EF4444;
 }
 
 /* ===== SEARCH & FILTER ===== */
@@ -473,7 +792,7 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
-  min-width: 850px;
+  min-width: 1000px;
 }
 
 .bills-table thead th {
@@ -519,6 +838,7 @@
 .bills-table tbody tr {
   transition: all 0.3s ease;
   background: var(--bg-glass);
+  cursor: pointer;
 }
 
 [data-theme="dark"] .bills-table tbody tr {
@@ -539,29 +859,29 @@
 
 /* Column Widths */
 .bills-table .sno-col { width: 40px; min-width: 40px; max-width: 40px; }
-.bills-table .month-col { width: 130px; min-width: 130px; max-width: 130px; }
+.bills-table .month-col { width: 120px; min-width: 120px; max-width: 120px; }
 .bills-table .units-col { width: 60px; min-width: 60px; max-width: 60px; }
+.bills-table .rate-col { width: 80px; min-width: 80px; max-width: 80px; }
+.bills-table .rent-col { width: 80px; min-width: 80px; max-width: 80px; }
 .bills-table .electricity-col { width: 90px; min-width: 90px; max-width: 90px; }
-.bills-table .rent-col { width: 90px; min-width: 90px; max-width: 90px; }
 .bills-table .total-col { width: 100px; min-width: 100px; max-width: 100px; }
-.bills-table .paid-col { width: 100px; min-width: 100px; max-width: 100px; }
-.bills-table .remaining-col { width: 100px; min-width: 100px; max-width: 100px; }
+.bills-table .paid-col { width: 90px; min-width: 90px; max-width: 90px; }
+.bills-table .remaining-col { width: 90px; min-width: 90px; max-width: 90px; }
 .bills-table .status-col { width: 100px; min-width: 100px; max-width: 100px; }
-.bills-table .action-col { width: 110px; min-width: 110px; max-width: 110px; }
 
 /* Cell Alignments */
 .bills-table .sno-cell { text-align: center; }
 .bills-table .month-cell { text-align: left; }
 .bills-table .units-cell { text-align: right; }
-.bills-table .electricity-cell { text-align: right; }
+.bills-table .rate-cell { text-align: right; }
 .bills-table .rent-cell { text-align: right; }
+.bills-table .electricity-cell { text-align: right; }
 .bills-table .total-cell { text-align: right; }
 .bills-table .paid-cell { text-align: right; }
 .bills-table .remaining-cell { text-align: right; }
 .bills-table .status-cell { text-align: center; }
-.bills-table .action-cell { text-align: center; }
 
-/* ===== BADGE STATUS ===== */
+/* ===== BADGE ===== */
 .badge-status {
   padding: 4px 14px;
   border-radius: 50px;
@@ -595,57 +915,6 @@
   background: rgba(251, 191, 36, 0.08);
   color: #B45309;
   border: 1px solid rgba(251, 191, 36, 0.08);
-}
-
-/* ===== ACTION BUTTONS ===== */
-.action-buttons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.action-btn {
-  padding: 4px 12px;
-  border-radius: 6px;
-  border: none;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.action-btn.pay-btn {
-  background: linear-gradient(135deg, #34D399, #059669);
-  color: white;
-  box-shadow: 0 2px 10px rgba(52, 211, 153, 0.2);
-}
-
-.action-btn.pay-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(52, 211, 153, 0.35);
-}
-
-.action-btn.view-btn {
-  background: rgba(108, 99, 255, 0.08);
-  color: #6C63FF;
-  border: 1px solid rgba(108, 99, 255, 0.1);
-}
-
-[data-theme="light"] .action-btn.view-btn {
-  background: rgba(108, 99, 255, 0.04);
-}
-
-.action-btn.view-btn:hover {
-  background: rgba(108, 99, 255, 0.15);
-  transform: translateY(-2px);
-}
-
-.paid-label {
-  font-size: 18px;
 }
 
 /* ===== EMPTY STATE ===== */
@@ -701,12 +970,8 @@
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .bill-detail-modal {
@@ -732,14 +997,8 @@
 }
 
 @keyframes slideUp {
-  from {
-    transform: translateY(30px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 .bill-detail-header {
@@ -938,6 +1197,17 @@
     font-size: 20px;
   }
   
+  .bills-header-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+  
+  .btn-add-bill,
+  .btn-back-dashboard {
+    width: 100%;
+    justify-content: center;
+  }
+  
   .bills-search-filter {
     flex-direction: column;
     align-items: stretch;
@@ -952,7 +1222,7 @@
   }
   
   .bills-table {
-    min-width: 650px;
+    min-width: 750px;
     font-size: 12px;
   }
   
@@ -960,17 +1230,6 @@
   .bills-table tbody td {
     padding: 6px 8px;
     font-size: 11px;
-  }
-  
-  .bills-table .month-col { width: 100px; min-width: 100px; max-width: 100px; }
-  .bills-table .total-col { width: 80px; min-width: 80px; max-width: 80px; }
-  .bills-table .paid-col { width: 80px; min-width: 80px; max-width: 80px; }
-  .bills-table .remaining-col { width: 80px; min-width: 80px; max-width: 80px; }
-  .bills-table .action-col { width: 90px; min-width: 90px; max-width: 90px; }
-  
-  .action-btn {
-    font-size: 10px;
-    padding: 3px 8px;
   }
   
   .stat-card {
@@ -1014,7 +1273,7 @@
   }
   
   .bills-table {
-    min-width: 500px;
+    min-width: 600px;
     font-size: 11px;
   }
   
@@ -1022,22 +1281,6 @@
   .bills-table tbody td {
     padding: 4px 6px;
     font-size: 10px;
-  }
-  
-  .bills-table .month-col { width: 80px; min-width: 80px; max-width: 80px; }
-  .bills-table .total-col { width: 70px; min-width: 70px; max-width: 70px; }
-  .bills-table .paid-col { width: 70px; min-width: 70px; max-width: 70px; }
-  .bills-table .remaining-col { width: 70px; min-width: 70px; max-width: 70px; }
-  .bills-table .action-col { width: 75px; min-width: 75px; max-width: 75px; }
-  
-  .action-btn {
-    font-size: 9px;
-    padding: 2px 6px;
-  }
-  
-  .action-btn svg {
-    width: 12px;
-    height: 12px;
   }
   
   .badge-status {

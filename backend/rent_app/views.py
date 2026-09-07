@@ -289,27 +289,42 @@ def tenant_register(request):
         name = request.data.get('name')
         email = request.data.get('email')
         password = request.data.get('password')
-        otp = request.data.get('otp')
+        otp = request.data.get('otp')  # 🔥 Optional now
+        otp_verified = request.data.get('otp_verified', False)  # 🔥 NEW
         
         print(f"📝 Tenant Register - Mobile: {mobile}, Email: {email}")
         
-        if not all([mobile, name, email, password, otp]):
+        if not all([mobile, name, email, password]):
             return Response({
-                'error': 'All fields are required'
+                'error': 'Mobile, Name, Email and Password are required'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Verify OTP
-        try:
-            otp_obj = OTP.objects.get(email=email, otp=otp, is_verified=False)
-            if otp_obj.is_expired():
-                otp_obj.delete()
+        # 🔥 NEW: Check if OTP is already verified (coming from frontend)
+        if otp_verified:
+            print(f"✅ OTP already verified for {email}")
+        else:
+            # 🔥 OLD: Verify OTP if not already verified
+            if not otp:
                 return Response({
-                    'error': 'OTP has expired. Please request a new one.'
+                    'error': 'OTP is required'
                 }, status=status.HTTP_400_BAD_REQUEST)
-        except OTP.DoesNotExist:
-            return Response({
-                'error': 'Invalid OTP. Please try again.'
-            }, status=status.HTTP_400_BAD_REQUEST)
+            
+            try:
+                otp_obj = OTP.objects.get(email=email, otp=otp, is_verified=False)
+                if otp_obj.is_expired():
+                    otp_obj.delete()
+                    return Response({
+                        'error': 'OTP has expired. Please request a new one.'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                
+                # Mark OTP as verified
+                otp_obj.is_verified = True
+                otp_obj.save()
+                
+            except OTP.DoesNotExist:
+                return Response({
+                    'error': 'Invalid OTP. Please try again.'
+                }, status=status.HTTP_400_BAD_REQUEST)
         
         # Check if tenant already exists
         tenant, created = Tenant.objects.get_or_create(mobile=mobile)
@@ -321,10 +336,6 @@ def tenant_register(request):
         tenant.is_registered = True
         tenant.registered_at = timezone.now()
         tenant.save()
-        
-        # Mark OTP as verified
-        otp_obj.is_verified = True
-        otp_obj.save()
         
         # Update Room with latest details
         if tenant.room:
@@ -338,6 +349,7 @@ def tenant_register(request):
         from rest_framework_simplejwt.tokens import RefreshToken
         refresh = RefreshToken()
         refresh['tenant_id'] = tenant.id
+        refresh['user_id'] = tenant.id
         refresh['mobile'] = tenant.mobile
         
         print(f"✅ Tenant registered successfully: {name} ({mobile})")
@@ -384,6 +396,7 @@ def tenant_login(request):
             from rest_framework_simplejwt.tokens import RefreshToken
             refresh = RefreshToken()
             refresh['tenant_id'] = tenant.id
+            refresh['user_id'] = tenant.id
             refresh['mobile'] = tenant.mobile
             
             return Response({
@@ -582,6 +595,26 @@ class RoomViewSet(viewsets.ModelViewSet):
     queryset = Room.objects.filter(is_deleted=False)
     serializer_class = RoomSerializer
     permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        """Room create karte waqt Tenant bhi create karo"""
+        room = serializer.save()
+        
+        # Agar tenant details hain toh Tenant table me bhi entry banao
+        if room.tenant_name and room.tenant_mobile:
+            tenant, created = Tenant.objects.get_or_create(
+                mobile=room.tenant_mobile,
+                defaults={
+                    'name': room.tenant_name,
+                    'email': room.tenant_email or '',
+                    'is_registered': False,  # Abhi tak register nahi kiya
+                }
+            )
+            # Room ko tenant se link karo
+            if not tenant.room:
+                tenant.room = room
+                tenant.save()
+            print(f"✅ Tenant created/updated: {tenant.name} ({tenant.mobile})")
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
